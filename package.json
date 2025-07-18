@@ -1,0 +1,146 @@
+{
+  "name": "copilot-lmapi-bridge",
+  "displayName": "Copilot-LMAPI",
+  "description": "Bridge VS Code Copilot Language Model API to OpenAI-compatible HTTP API",
+  "version": "0.2.0",
+  "publisher": "copilot-bridge",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "copilot",
+    "lmapi",
+    "api",
+    "bridge",
+    "language model"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "copilot-lmapi.start",
+        "title": "Start LM API Server",
+        "category": "Copilot-LMAPI"
+      },
+      {
+        "command": "copilot-lmapi.stop",
+        "title": "Stop LM API Server", 
+        "category": "Copilot-LMAPI"
+      },
+      {
+        "command": "copilot-lmapi.restart",
+        "title": "Restart LM API Server",
+        "category": "Copilot-LMAPI"
+      },
+      {
+        "command": "copilot-lmapi.status",
+        "title": "Show Server Status",
+        "category": "Copilot-LMAPI"
+      }
+    ],
+    "configuration": {
+      "title": "Copilot-LMAPI",
+      "properties": {
+        "copilot-lmapi.port": {
+          "type": "number",
+          "default": 8001,
+          "minimum": 1024,
+          "maximum": 65535,
+          "description": "HTTP server port (requires restart)"
+        },
+        "copilot-lmapi.host": {
+          "type": "string",
+          "default": "127.0.0.1",
+          "description": "HTTP server host (127.0.0.1 for localhost only)"
+        },
+        "copilot-lmapi.autoStart": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically start server when VS Code starts"
+        },
+        "copilot-lmapi.enableLogging": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable detailed logging"
+        },
+        "copilot-lmapi.maxConcurrentRequests": {
+          "type": "number",
+          "default": 10,
+          "minimum": 1,
+          "maximum": 100,
+          "description": "Maximum concurrent requests"
+        },
+        "copilot-lmapi.requestTimeout": {
+          "type": "number",
+          "default": 120000,
+          "minimum": 5000,
+          "maximum": 600000,
+          "description": "Request timeout in milliseconds"
+        },
+        "copilot-lmapi.modelCacheRefreshInterval": {
+          "type": "number",
+          "default": 300000,
+          "minimum": 60000,
+          "maximum": 3600000,
+          "description": "Model cache refresh interval in milliseconds (default: 5 minutes)"
+        },
+        "copilot-lmapi.modelHealthCheckInterval": {
+          "type": "number", 
+          "default": 600000,
+          "minimum": 60000,
+          "maximum": 3600000,
+          "description": "Model health check interval in milliseconds (default: 10 minutes)"
+        }
+      }
+    },
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "copilot-lmapi.start"
+        },
+        {
+          "command": "copilot-lmapi.stop"
+        },
+        {
+          "command": "copilot-lmapi.restart"
+        },
+        {
+          "command": "copilot-lmapi.status"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.74.0",
+    "@types/node": "18.x",
+    "@typescript-eslint/eslint-plugin": "^6.4.1",
+    "@typescript-eslint/parser": "^6.4.1",
+    "eslint": "^8.47.0",
+    "typescript": "^5.1.6",
+    "vsce": "^2.15.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ruijie-dev/copilot-openai-bridge"
+  },
+  "bugs": {
+    "url": "https://github.com/ruijie-dev/copilot-openai-bridge/issues"
+  },
+  "homepage": "https://github.com/ruijie-dev/copilot-openai-bridge#readme",
+  "license": "MIT"
+}
