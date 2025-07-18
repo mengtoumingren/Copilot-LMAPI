@@ -26,12 +26,14 @@
 
 ```json
 {
-    "copilot-openai.port": 8001,
-    "copilot-openai.host": "127.0.0.1",
-    "copilot-openai.autoStart": false,
-    "copilot-openai.enableLogging": true,
-    "copilot-openai.maxConcurrentRequests": 10,
-    "copilot-openai.requestTimeout": 120000
+    "copilot-lmapi.port": 8001,
+    "copilot-lmapi.host": "127.0.0.1",
+    "copilot-lmapi.autoStart": false,
+    "copilot-lmapi.enableLogging": true,
+    "copilot-lmapi.maxConcurrentRequests": 10,
+    "copilot-lmapi.requestTimeout": 120000,
+    "copilot-lmapi.modelCacheRefreshInterval": 300000,
+    "copilot-lmapi.modelHealthCheckInterval": 600000
 }
 ```
 
@@ -45,12 +47,14 @@
 | `enableLogging` | boolean | `true` | 启用详细日志记录 |
 | `maxConcurrentRequests` | number | `10` | 最大并发请求数 |
 | `requestTimeout` | number | `120000` | 请求超时时间（毫秒）|
+| `modelCacheRefreshInterval` | number | `300000` | 模型缓存刷新间隔（毫秒，默认5分钟）|
+| `modelHealthCheckInterval` | number | `600000` | 模型健康检查间隔（毫秒，默认10分钟）|
 
 ## 🎯 使用方法
 
 ### 启动服务器
 
-1. **命令面板**：按 `Ctrl+Shift+P` → 输入 "Copilot OpenAI: Start Server"
+1. **命令面板**：按 `Ctrl+Shift+P` → 输入 "Copilot-LMAPI: Start LM API Server"
 2. **状态栏**：点击右下角的服务器状态
 3. **自动启动**：在设置中启用自动启动功能
 
@@ -102,7 +106,7 @@ GET /status
 ### 日志记录
 详细日志可在以下位置查看：
 1. **输出面板**：视图 → 输出 → "Copilot-LMAPI"
-2. **命令**："Copilot OpenAI: Show Logs"
+2. **命令**："Copilot-LMAPI: Show Server Status"
 
 ### 服务器指标
 访问实时指标：
@@ -144,7 +148,7 @@ GET http://127.0.0.1:8001/status
 在设置中启用调试日志：
 ```json
 {
-    "copilot-openai.enableLogging": true
+    "copilot-lmapi.enableLogging": true
 }
 ```
 

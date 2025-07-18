@@ -82,6 +82,20 @@
           "minimum": 5000,
           "maximum": 600000,
           "description": "Request timeout in milliseconds"
+        },
+        "copilot-lmapi.modelCacheRefreshInterval": {
+          "type": "number",
+          "default": 300000,
+          "minimum": 60000,
+          "maximum": 3600000,
+          "description": "Model cache refresh interval in milliseconds (default: 5 minutes)"
+        },
+        "copilot-lmapi.modelHealthCheckInterval": {
+          "type": "number", 
+          "default": 600000,
+          "minimum": 60000,
+          "maximum": 3600000,
+          "description": "Model health check interval in milliseconds (default: 10 minutes)"
         }
       }
     },

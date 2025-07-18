@@ -28,10 +28,12 @@ export class ModelDiscoveryService {
     public readonly onModelEvent: vscode.Event<ModelEvent>;
     
     constructor(config?: Partial<ModelDiscoveryConfig>) {
+        const vsCodeConfig = vscode.workspace.getConfiguration('copilot-lmapi');
+        
         this.config = {
             enableCaching: true,
-            cacheRefreshInterval: 30000, // 30 seconds
-            healthCheckInterval: 60000,  // 1 minute
+            cacheRefreshInterval: vsCodeConfig.get('modelCacheRefreshInterval', 300000), // 5 minutes default
+            healthCheckInterval: vsCodeConfig.get('modelHealthCheckInterval', 600000),  // 10 minutes default
             capabilityTestTimeout: 5000, // 5 seconds
             enablePerformanceTracking: true,
             enableAutoFailover: true,
