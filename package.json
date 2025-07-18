@@ -2,7 +2,7 @@
   "name": "copilot-lmapi-bridge",
   "displayName": "Copilot-LMAPI",
   "description": "Bridge VS Code Copilot Language Model API to OpenAI-compatible HTTP API",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "publisher": "copilot-bridge",
   "engines": {
     "vscode": "^1.74.0"
@@ -136,11 +136,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ruijie-dev/copilot-openai-bridge"
+    "url": "https://github.com/BlueSkyXN/Copilot-LMAPI"
   },
   "bugs": {
-    "url": "https://github.com/ruijie-dev/copilot-openai-bridge/issues"
+    "url": "https://github.com/BlueSkyXN/Copilot-LMAPI/issues"
   },
-  "homepage": "https://github.com/ruijie-dev/copilot-openai-bridge#readme",
+  "homepage": "https://github.com/BlueSkyXN/Copilot-LMAPI#readme",
   "license": "MIT"
 }

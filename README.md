@@ -79,7 +79,8 @@ GET /v1/models
 
 返回通过 Copilot 可用的模型列表。
 
-Supported models: gpt-4o, gpt-4o-mini, gpt-4, gpt-4-turbo, gpt-3.5-turbo, claude-3.5-sonnet, claude-3-haiku, claude-3-sonnet, claude-3-opus
+明确支持：gpt-4o, claude-3.5-sonnet
+实测支持：gpt-4.1, claude-sonnet-4, gemini-2.0-flash-001, gemini-2.5-pro, o3-mini, o4-mini
 
 #### 健康检查
 ```
