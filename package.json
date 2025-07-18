@@ -2,7 +2,7 @@
   "name": "copilot-lmapi-bridge",
   "displayName": "Copilot-LMAPI",
   "description": "Bridge VS Code Copilot Language Model API to OpenAI-compatible HTTP API",
-  "version": "1.0.0",
+  "version": "0.2.0",
   "publisher": "copilot-bridge",
   "engines": {
     "vscode": "^1.74.0"
