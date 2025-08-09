@@ -151,17 +151,23 @@ export class Converter {
                     description: `Remote image from ${new URL(imageUrl).hostname}`
                 };
                 
-            } else if (imageUrl.startsWith('file://') || fs.existsSync(imageUrl)) {
+            } else if (imageUrl.startsWith('file://') || await this.fileExists(imageUrl)) {
                 // 本地文件
                 const filePath = imageUrl.startsWith('file://') ? imageUrl.slice(7) : imageUrl;
                 const ext = path.extname(filePath).toLowerCase();
                 const supportedFormats = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
                 
                 if (supportedFormats.includes(ext)) {
-                    const stats = fs.statSync(filePath);
-                    return {
-                        description: `Local ${ext.slice(1)} image (${(stats.size / 1024).toFixed(1)}KB)`
-                    };
+                    try {
+                        const stats = await fs.promises.stat(filePath);
+                        return {
+                            description: `Local ${ext.slice(1)} image (${(stats.size / 1024).toFixed(1)}KB)`
+                        };
+                    } catch (error) {
+                        return {
+                            description: `Local ${ext.slice(1)} image (size unknown)`
+                        };
+                    }
                 }
             }
             
@@ -226,7 +232,7 @@ export class Converter {
                 finish_reason: 'stop'
             }],
             usage: {
-                prompt_tokens: this.estimateTokens(context.estimatedTokens.toString()),
+                prompt_tokens: context.estimatedTokens,
                 completion_tokens: this.estimateTokens(content),
                 total_tokens: context.estimatedTokens + this.estimateTokens(content)
             },
@@ -435,9 +441,15 @@ export class Converter {
         
         // 确定所需能力
         const requiredCapabilities: string[] = [];
-        if (hasImages) requiredCapabilities.push('supportsVision');
-        if (hasFunctions) requiredCapabilities.push('supportsTools');
-        if (isStream) requiredCapabilities.push('supportsStreaming');
+        if (hasImages) {
+            requiredCapabilities.push('supportsVision');
+        }
+        if (hasFunctions) {
+            requiredCapabilities.push('supportsTools');
+        }
+        if (isStream) {
+            requiredCapabilities.push('supportsStreaming');
+        }
         
         return {
             requestId,
@@ -525,6 +537,18 @@ export class Converter {
         };
     }
     
+    /**
+     * 🔍 异步检查文件是否存在
+     */
+    private static async fileExists(filePath: string): Promise<boolean> {
+        try {
+            await fs.promises.access(filePath);
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
     /**
      * 🚀 创建 OpenAI 格式的错误响应
      */

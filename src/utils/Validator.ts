@@ -70,15 +70,33 @@ export class Validator {
         };
         
         // 添加可选参数
-        if (maxTokens !== undefined) validatedRequest.max_tokens = maxTokens;
-        if (n !== undefined) validatedRequest.n = n;
-        if (topP !== undefined) validatedRequest.top_p = topP;
-        if (stop !== undefined) validatedRequest.stop = stop;
-        if (presencePenalty !== undefined) validatedRequest.presence_penalty = presencePenalty;
-        if (frequencyPenalty !== undefined) validatedRequest.frequency_penalty = frequencyPenalty;
-        if (request.user) validatedRequest.user = this.validateUser(request.user);
-        if (request.functions) validatedRequest.functions = request.functions;
-        if (request.tools) validatedRequest.tools = request.tools;
+        if (maxTokens !== undefined) {
+            validatedRequest.max_tokens = maxTokens;
+        }
+        if (n !== undefined) {
+            validatedRequest.n = n;
+        }
+        if (topP !== undefined) {
+            validatedRequest.top_p = topP;
+        }
+        if (stop !== undefined) {
+            validatedRequest.stop = stop;
+        }
+        if (presencePenalty !== undefined) {
+            validatedRequest.presence_penalty = presencePenalty;
+        }
+        if (frequencyPenalty !== undefined) {
+            validatedRequest.frequency_penalty = frequencyPenalty;
+        }
+        if (request.user) {
+            validatedRequest.user = this.validateUser(request.user);
+        }
+        if (request.functions) {
+            validatedRequest.functions = request.functions;
+        }
+        if (request.tools) {
+            validatedRequest.tools = request.tools;
+        }
         
         return validatedRequest;
     }

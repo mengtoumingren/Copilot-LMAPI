@@ -353,7 +353,9 @@ export class CopilotServer {
      * 🔄 增强服务器事件处理器
      */
     private setupEnhancedServerEventHandlers(): void {
-        if (!this.server) return;
+        if (!this.server) {
+            return;
+        }
         
         this.server.on('connection', (socket) => {
             socket.setKeepAlive(true, 60000);

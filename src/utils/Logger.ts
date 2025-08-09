@@ -56,8 +56,8 @@ export class Logger {
         // 总是在输出频道中显示
         this.outputChannel.appendLine(formattedMessage);
 
-        // 在 VS Code 中显示错误通知
-        if (level === 'ERROR') {
+        // 仅在全局/致命错误（无 requestId）时弹窗；请求级错误仅写入输出面板
+        if (level === 'ERROR' && !requestId) {
             vscode.window.showErrorMessage(`Copilot-LMAPI: ${message}`);
         }
 

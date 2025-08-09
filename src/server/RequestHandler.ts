@@ -34,7 +34,6 @@ import {
 export class RequestHandler {
     private modelDiscovery: ModelDiscoveryService;
     private functionService: FunctionCallService;
-    private requestMetrics: Map<string, { startTime: Date; model?: string }> = new Map();
     private isInitialized: boolean = false;
     
     constructor() {
@@ -627,6 +626,5 @@ export class RequestHandler {
     public dispose(): void {
         this.modelDiscovery.dispose();
         this.functionService.dispose();
-        this.requestMetrics.clear();
     }
 }

@@ -198,12 +198,12 @@ export class ModelDiscoveryService {
         const modelId = capabilities.id.toLowerCase();
         
         // 推断最大输出令牌数
-        if (!capabilities.maxOutputTokens) {
+    if (!capabilities.maxOutputTokens) {
             capabilities.maxOutputTokens = Math.min(capabilities.maxInputTokens * 0.5, 4096);
         }
         
         // 为已知视觉模型推断图像能力
-        if (capabilities.supportsVision) {
+    if (capabilities.supportsVision) {
             capabilities.maxImageSize = 20 * 1024 * 1024; // 20MB
         }
         
@@ -225,12 +225,16 @@ export class ModelDiscoveryService {
         // 按需求筛选
         let candidateModels = availableModels.filter(model => {
             // 检查健康状态
-            if (!model.isHealthy) return false;
+            if (!model.isHealthy) {
+                return false;
+            }
             
             // 检查必需能力
             if (criteria.requiredCapabilities) {
                 for (const capability of criteria.requiredCapabilities) {
-                    if (!model[capability]) return false;
+                    if (!model[capability]) {
+                        return false;
+                    }
                 }
             }
             
@@ -303,9 +307,15 @@ export class ModelDiscoveryService {
         let score = 0;
         
         score += model.maxInputTokens / 1000; // 令牌容量
-        if (model.supportsVision) score += 50;
-        if (model.supportsTools) score += 30;
-        if (model.supportsMultimodal) score += 20;
+        if (model.supportsVision) {
+            score += 50;
+        }
+        if (model.supportsTools) {
+            score += 30;
+        }
+        if (model.supportsMultimodal) {
+            score += 20;
+        }
         score += (model.successRate || 0.5) * 100; // 健康评分
         
         return score;

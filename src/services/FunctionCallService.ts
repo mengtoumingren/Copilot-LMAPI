@@ -12,6 +12,8 @@ import {
     ModelCapabilities 
 } from '../types/ModelCapabilities';
 import { logger } from '../utils/Logger';
+import * as fs from 'fs';
+import * as path from 'path';
 
 // 🛠️ 增强型工具定义
 export interface EnhancedTool {
@@ -99,7 +101,7 @@ export class FunctionCallService {
                     properties: {
                         format: {
                             type: 'string',
-                            description: '日期格式 (iso, locale, timestamp)'
+                            description: '日期格式 (iso, locale, timestamp)',
                             enum: ['iso', 'locale', 'timestamp']
                         },
                         timezone: {
@@ -323,9 +325,14 @@ export class FunctionCallService {
         // 安全表达式评估（仅基本操作）
         const safeExpression = expression.replace(/[^0-9+\-*/().\s]/g, '');
         
+        // 进一步验证表达式
+        if (!safeExpression || !/^[\d+\-*/().\s]+$/.test(safeExpression)) {
+            throw new Error('无效的数学表达式');
+        }
+        
         try {
-            // 使用 Function 构造函数进行安全评估
-            const result = new Function('return ' + safeExpression)();
+            // 使用更安全的 eval 替代方案（限制了输入）
+            const result = this.safeEval(safeExpression);
             
             if (typeof result !== 'number' || !isFinite(result)) {
                 throw new Error('无效的计算结果');
@@ -376,23 +383,36 @@ export class FunctionCallService {
      * 📁 文件信息工具处理程序
      */
     private async fileInfoHandler(parameters: any, context: ToolExecutionContext): Promise<any> {
-        const { path, operation } = parameters;
-        const fs = require('fs').promises;
+        const { path: filePath, operation } = parameters;
+        
+        // 🔒 安全检查：防止路径遍历攻击
+        if (!filePath || typeof filePath !== 'string') {
+            throw new Error('无效的路径参数');
+        }
+        
+        // 严格的路径安全检查
+        const normalizedPath = this.validateAndNormalizePath(filePath);
+        
+        // 限制只能访问工作目录及其子目录（可配置）
+        const workspaceRoot = process.cwd();
+        if (!normalizedPath.startsWith(workspaceRoot)) {
+            throw new Error('只允许访问工作目录内的文件');
+        }
         
         try {
             switch (operation) {
                 case 'exists':
                     try {
-                        await fs.access(path);
-                        return { exists: true, path };
+                        await fs.promises.access(normalizedPath);
+                        return { exists: true, path: normalizedPath };
                     } catch {
-                        return { exists: false, path };
+                        return { exists: false, path: normalizedPath };
                     }
                 
                 case 'stat':
-                    const stat = await fs.stat(path);
+                    const stat = await fs.promises.stat(normalizedPath);
                     return {
-                        path,
+                        path: normalizedPath,
                         size: stat.size,
                         isFile: stat.isFile(),
                         isDirectory: stat.isDirectory(),
@@ -401,9 +421,9 @@ export class FunctionCallService {
                     };
                 
                 case 'list':
-                    const entries = await fs.readdir(path);
+                    const entries = await fs.promises.readdir(normalizedPath);
                     return {
-                        path,
+                        path: normalizedPath,
                         entries: entries.slice(0, 100), // 限制结果
                         total: entries.length
                     };
@@ -465,6 +485,170 @@ export class FunctionCallService {
         return false;
     }
     
+    /**
+     * 🔒 安全的数学表达式求值器（替代 eval）
+     */
+    private safeEval(expression: string): number {
+        // 简单的数学解析器，避免使用 eval
+        try {
+            // 移除所有空格
+            const cleanExpr = expression.replace(/\s/g, '');
+            
+            // 基本的括号匹配验证
+            let bracketCount = 0;
+            for (const char of cleanExpr) {
+                if (char === '(') {
+                    bracketCount++;
+                }
+                if (char === ')') {
+                    bracketCount--;
+                }
+                if (bracketCount < 0) {
+                    throw new Error('括号不匹配');
+                }
+            }
+            if (bracketCount !== 0) {
+                throw new Error('括号不匹配');
+            }
+            
+            // 使用简单的表达式解析器（完全避免 eval）
+            const result = this.parseExpression(cleanExpr);
+            return Number(result);
+        } catch (error) {
+            throw new Error('数学表达式计算失败：' + String(error));
+        }
+    }
+
+    /**
+     * 🔒 严格的路径验证和规范化
+     */
+    private validateAndNormalizePath(filePath: string): string {
+        // 1. 基本格式检查
+        if (filePath.length > 1000) {
+            throw new Error('路径过长');
+        }
+        
+        // 2. 检查危险字符和模式
+        const dangerousPatterns = [
+            /\.\./,              // 父目录遍历
+            /~/,                 // home目录引用
+            /\0/,                // null字节注入
+            /%2e/i,              // URL编码的 . (任何形式)
+            /%2f/i,              // URL编码的 /
+            /%5c/i,              // URL编码的 \
+            /\\/,                // Windows路径分隔符
+            /^\/[^\/]/,          // 绝对路径
+            /^[a-zA-Z]:/,        // Windows驱动器路径
+            /%[0-9a-f]{2}/i,     // 任何URL编码都不允许
+        ];
+        
+        for (const pattern of dangerousPatterns) {
+            if (pattern.test(filePath)) {
+                throw new Error(`路径包含危险字符或模式: ${filePath}`);
+            }
+        }
+        
+        // 3. 只允许相对路径且在当前目录下
+        if (path.isAbsolute(filePath)) {
+            throw new Error('不允许绝对路径');
+        }
+        
+        // 4. 规范化路径
+        const normalizedPath = path.resolve(filePath);
+        
+        // 5. 验证规范化后的路径
+        const workspaceRoot = process.cwd();
+        if (!normalizedPath.startsWith(workspaceRoot)) {
+            throw new Error('路径超出允许范围');
+        }
+        
+        // 6. 额外安全检查：确保没有符号链接攻击
+        const relativePath = path.relative(workspaceRoot, normalizedPath);
+        if (relativePath.startsWith('..')) {
+            throw new Error('规范化后的路径无效');
+        }
+        
+        return normalizedPath;
+    }
+
+    /**
+     * 🧮 安全的数学表达式解析器（无eval）
+     */
+    private parseExpression(expr: string): number {
+        // 简单的递归下降解析器，支持 +, -, *, /, () 和数字
+        let index = 0;
+        
+        const parseNumber = (): number => {
+            let num = '';
+            while (index < expr.length && /[\d.]/.test(expr[index])) {
+                num += expr[index++];
+            }
+            const result = parseFloat(num);
+            if (isNaN(result)) {
+                throw new Error('无效数字');
+            }
+            return result;
+        };
+        
+        const parseFactor = (): number => {
+            if (expr[index] === '(') {
+                index++; // skip '('
+                const result = parseAddSub();
+                if (expr[index] !== ')') {
+                    throw new Error('缺少右括号');
+                }
+                index++; // skip ')'
+                return result;
+            }
+            if (expr[index] === '-') {
+                index++; // skip '-'
+                return -parseFactor();
+            }
+            if (expr[index] === '+') {
+                index++; // skip '+'
+                return parseFactor();
+            }
+            return parseNumber();
+        };
+        
+        const parseMulDiv = (): number => {
+            let result = parseFactor();
+            while (index < expr.length && /[*/]/.test(expr[index])) {
+                const op = expr[index++];
+                const right = parseFactor();
+                if (op === '*') {
+                    result *= right;
+                } else if (op === '/') {
+                    if (right === 0) {
+                        throw new Error('除零错误');
+                    }
+                    result /= right;
+                }
+            }
+            return result;
+        };
+        
+        const parseAddSub = (): number => {
+            let result = parseMulDiv();
+            while (index < expr.length && /[+-]/.test(expr[index])) {
+                const op = expr[index++];
+                const right = parseMulDiv();
+                if (op === '+') {
+                    result += right;
+                } else {
+                    result -= right;
+                }
+            }
+            return result;
+        };
+        
+        const result = parseAddSub();
+        if (index < expr.length) {
+            throw new Error('表达式末尾有多余字符');
+        }
+        return result;
+    }
+
     /**
      * 🧹 清理资源
      */

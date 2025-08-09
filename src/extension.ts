@@ -6,18 +6,20 @@
 import * as vscode from 'vscode';
 import { CopilotServer } from './server/CopilotServer';
 import { logger } from './utils/Logger';
-import { COMMANDS, NOTIFICATIONS, STATUS_BAR_PRIORITIES } from './constants/Config';
+import { COMMANDS, STATUS_BAR_PRIORITIES, HEALTH_CHECK } from './constants/Config';
 
 let server: CopilotServer;
 let statusBarItem: vscode.StatusBarItem;
-let outputChannel: vscode.OutputChannel;
-let healthCheckTimer: NodeJS.Timer;
+let healthCheckTimer: NodeJS.Timeout;
 
 /**
  * 扩展激活
  */
 export function activate(context: vscode.ExtensionContext) {
     logger.info('Copilot-LMAPI extension activating');
+
+    // 在激活时检查 Copilot 可用性
+    showCopilotSetupIfNeeded();
 
     // 初始化服务器
     server = new CopilotServer();
@@ -36,16 +38,27 @@ export function activate(context: vscode.ExtensionContext) {
     // 如果配置了则自动启动
     const config = vscode.workspace.getConfiguration('copilot-lmapi');
     if (config.get<boolean>('autoStart', false)) {
-        vscode.commands.executeCommand(COMMANDS.START);
+        // 自动启动前先做健康检查
+        checkCopilotHealth().then(hasCopilot => {
+            if (hasCopilot) {
+                vscode.commands.executeCommand(COMMANDS.START);
+            } else {
+                logger.warn('Auto-start skipped: GitHub Copilot is not available.');
+            }
+        });
     }
 
     // 设置定期健康检查
     healthCheckTimer = setInterval(async () => {
-        const hasCopilot = await checkCopilotHealth();
-        if (!hasCopilot && server.getState().isRunning) {
-            logger.warn('Copilot access lost while server is running');
+        try {
+            const hasCopilot = await checkCopilotHealth();
+            if (!hasCopilot && server.getState().isRunning) {
+                logger.warn('Copilot access lost while server is running');
+            }
+        } catch (error) {
+            logger.error('Health check failed:', error as Error);
         }
-    }, 60000); // 每分钟检查一次
+    }, HEALTH_CHECK.INTERVAL);
 
     // 将定时器添加到订阅中以便正确清理
     context.subscriptions.push({
@@ -150,14 +163,6 @@ function registerCommands(context: vscode.ExtensionContext) {
         statusCommand
     );
 
-    // 注册服务器清理
-    context.subscriptions.push({
-        dispose: () => {
-            if (server) {
-                server.dispose();
-            }
-        }
-    });
 }
 
 /**
@@ -165,7 +170,6 @@ function registerCommands(context: vscode.ExtensionContext) {
  */
 function updateStatusBar() {
     const state = server.getState();
-    const config = server.getConfig();
 
     if (state.isRunning) {
         statusBarItem.text = `$(server) LM API :${state.port}`;
@@ -220,7 +224,7 @@ async function showServerStatus() {
         });
 
         if (selected) {
-            await handleStatusAction(selected.action, state, config);
+            await handleStatusAction(selected.action);
         }
     } else {
         const items = [
@@ -247,7 +251,7 @@ async function showServerStatus() {
         });
 
         if (selected) {
-            await handleStatusAction(selected.action, state, config);
+            await handleStatusAction(selected.action);
         }
     }
 }
@@ -255,7 +259,7 @@ async function showServerStatus() {
 /**
  * 处理状态面板操作
  */
-async function handleStatusAction(action: string, state: any, config: any) {
+async function handleStatusAction(action: string) {
     switch (action) {
         case 'start':
             await vscode.commands.executeCommand(COMMANDS.START);
@@ -273,6 +277,7 @@ async function handleStatusAction(action: string, state: any, config: any) {
             await vscode.commands.executeCommand('workbench.action.openSettings', 'copilot-lmapi');
             break;
         case 'copy-url':
+            const state = server.getState();
             const url = `http://${state.host}:${state.port}`;
             await vscode.env.clipboard.writeText(url);
             vscode.window.showInformationMessage(`Copied ${url} to clipboard`);
