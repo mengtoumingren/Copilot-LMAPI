@@ -1,7 +1,7 @@
 /**
- * 🚀 Enhanced Dynamic Validator
- * ✨ NO HARDCODED MODEL LIMITATIONS - Validates for ANY model!
- * 🎨 Full support for multimodal content and functions
+ * 🚀 增强动态验证器
+ * ✨ 无硬编码模型限制 - 支持任意模型验证！
+ * 🎨 对多模态内容和函数的完整支持
  */
 
 import { 
@@ -27,7 +27,7 @@ export class ValidationError extends Error {
 export class Validator {
     
     /**
-     * 🚀 Validate enhanced chat completion request (no model restrictions!)
+     * 🚀 验证增强聊天完成请求（无模型限制！）
      */
     public static validateChatCompletionRequest(
         request: any, 
@@ -37,10 +37,10 @@ export class Validator {
             throw new ValidationError('Request must be a valid JSON object');
         }
         
-        // Validate enhanced messages
+        // 验证增强消息
         const messages = this.validateEnhancedMessages(request.messages);
         
-        // 🎯 Dynamic model validation (no hardcoded list!)
+        // 🎯 动态模型验证（无硬编码列表！）
         const model = this.validateDynamicModel(request.model, availableModels);
         const stream = this.validateStream(request.stream);
         const temperature = this.validateTemperature(request.temperature);
@@ -51,17 +51,17 @@ export class Validator {
         const presencePenalty = this.validatePenalty(request.presence_penalty, 'presence_penalty');
         const frequencyPenalty = this.validatePenalty(request.frequency_penalty, 'frequency_penalty');
         
-        // Validate functions if present
+        // 如果存在则验证函数
         if (request.functions) {
             this.validateFunctions(request.functions);
         }
         
-        // Validate tools if present
+        // 如果存在则验证工具
         if (request.tools) {
             this.validateTools(request.tools);
         }
         
-        // Build validated request
+        // 构建已验证的请求
         const validatedRequest: ValidatedRequest = {
             model,
             messages: messages as any, // Type conversion for enhanced messages
@@ -69,7 +69,7 @@ export class Validator {
             temperature,
         };
         
-        // Add optional parameters
+        // 添加可选参数
         if (maxTokens !== undefined) validatedRequest.max_tokens = maxTokens;
         if (n !== undefined) validatedRequest.n = n;
         if (topP !== undefined) validatedRequest.top_p = topP;
@@ -84,7 +84,7 @@ export class Validator {
     }
     
     /**
-     * 🎨 Validate enhanced messages with multimodal support
+     * 🎨 验证支持多模态的增强消息
      */
     private static validateEnhancedMessages(messages: any): EnhancedMessage[] {
         if (!Array.isArray(messages)) {
@@ -107,7 +107,7 @@ export class Validator {
     }
     
     /**
-     * 🖼️ Validate individual enhanced message with multimodal content
+     * 🖼️ 验证带多模态内容的单个增强消息
      */
     private static validateEnhancedMessage(message: any, index: number): EnhancedMessage {
         if (!message || typeof message !== 'object') {
@@ -118,7 +118,7 @@ export class Validator {
             );
         }
         
-        // Validate role
+        // 验证角色
         if (!['system', 'user', 'assistant'].includes(message.role)) {
             throw new ValidationError(
                 `Invalid role "${message.role}" at message ${index}. Must be 'system', 'user', or 'assistant'`,
@@ -127,9 +127,9 @@ export class Validator {
             );
         }
         
-        // Validate content (can be string or array for multimodal)
+        // 验证内容（可以是字符串或多模态数组）
         if (typeof message.content === 'string') {
-            // Simple text content
+            // 简单文本内容
             if (message.content.length === 0) {
                 throw new ValidationError(
                     `Message content at index ${index} cannot be empty`,
@@ -147,7 +147,7 @@ export class Validator {
             }
             
         } else if (Array.isArray(message.content)) {
-            // 🎨 Multimodal content validation
+            // 🎨 多模态内容验证
             this.validateMultimodalContent(message.content, index);
             
         } else {
@@ -163,7 +163,7 @@ export class Validator {
             content: message.content
         };
         
-        // Optional fields
+        // 可选字段
         if (message.name && typeof message.name === 'string') {
             validatedMessage.name = message.name;
         }
@@ -180,7 +180,7 @@ export class Validator {
     }
     
     /**
-     * 🖼️ Validate multimodal content array
+     * 🖼️ 验证多模态内容数组
      */
     private static validateMultimodalContent(content: any[], messageIndex: number): void {
         if (content.length === 0) {
@@ -232,7 +232,7 @@ export class Validator {
                     );
                 }
                 
-                // Validate image URL format
+                // 验证图像 URL 格式
                 this.validateImageUrl(part.image_url.url, messageIndex, i);
                 
             } else {
@@ -244,7 +244,7 @@ export class Validator {
             }
         }
         
-        // Limit number of images per message
+        // 限制每条消息的图像数量
         if (imageCount > 10) { // Reasonable limit
             throw new ValidationError(
                 `Too many images in message ${messageIndex}. Maximum 10 images per message`,
@@ -255,10 +255,10 @@ export class Validator {
     }
     
     /**
-     * 🖼️ Validate image URL format
+     * 🖼️ 验证图像 URL 格式
      */
     private static validateImageUrl(url: string, messageIndex: number, partIndex: number): void {
-        // Support various image sources
+        // 支持各种图像源
         const validPatterns = [
             /^data:image\/(jpeg|jpg|png|gif|webp);base64,/, // Base64
             /^https?:\/\/.+\.(jpeg|jpg|png|gif|webp)$/i,   // HTTP URLs
@@ -279,11 +279,11 @@ export class Validator {
     }
     
     /**
-     * 🎯 Dynamic model validation (NO HARDCODED LIMITATIONS!)
+     * 🎯 动态模型验证（无硬编码限制！）
      */
     private static validateDynamicModel(model: any, availableModels?: ModelCapabilities[]): string {
         if (!model) {
-            // If no model specified, let the system auto-select
+            // 如果未指定模型，让系统自动选择
             return 'auto-select';
         }
         
@@ -291,14 +291,14 @@ export class Validator {
             throw new ValidationError('Model must be a string', ERROR_CODES.INVALID_REQUEST, 'model');
         }
         
-        // 🚀 REVOLUTIONARY: No hardcoded model list!
-        // If availableModels is provided, check if the model exists
+        // 🚀 革命性：无硬编码模型列表！
+        // 如果提供了可用模型，检查模型是否存在
         if (availableModels && availableModels.length > 0) {
             const modelExists = availableModels.some(m => m.id === model);
             
             if (!modelExists && model !== 'auto-select') {
                 logger.warn(`⚠️ Requested model "${model}" not found in available models. Will attempt dynamic discovery.`);
-                // Don't throw error - let the model discovery service handle it
+                // 不抛出错误 - 让模型发现服务处理它
             }
         }
         
@@ -306,7 +306,7 @@ export class Validator {
     }
     
     /**
-     * 🛠️ Validate functions array
+     * 🛠️ 验证函数数组
      */
     private static validateFunctions(functions: any): FunctionDefinition[] {
         if (!Array.isArray(functions)) {
@@ -317,7 +317,7 @@ export class Validator {
     }
     
     /**
-     * 🛠️ Validate individual function definition
+     * 🛠️ 验证单个函数定义
      */
     private static validateFunction(func: any, index: number): FunctionDefinition {
         if (!func || typeof func !== 'object') {
@@ -352,7 +352,7 @@ export class Validator {
     }
     
     /**
-     * 🛠️ Validate tools array
+     * 🛠️ 验证工具数组
      */
     private static validateTools(tools: any): any[] {
         if (!Array.isArray(tools)) {
@@ -373,7 +373,7 @@ export class Validator {
     }
     
     /**
-     * 📋 Validate max_tokens with dynamic model context
+     * 📋 用动态模型上下文验证 max_tokens
      */
     private static validateMaxTokens(maxTokens: any, selectedModel?: ModelCapabilities): number | undefined {
         if (maxTokens === undefined || maxTokens === null) {
@@ -388,7 +388,7 @@ export class Validator {
             throw new ValidationError('max_tokens must be at least 1', ERROR_CODES.INVALID_REQUEST, 'max_tokens');
         }
         
-        // 🚀 Dynamic validation based on selected model
+        // 🚀 基于选定模型的动态验证
         if (selectedModel) {
             const modelLimit = selectedModel.maxOutputTokens || selectedModel.maxInputTokens * 0.5;
             if (maxTokens > modelLimit) {
@@ -403,7 +403,7 @@ export class Validator {
         return maxTokens;
     }
     
-    // 🔄 Other validation methods remain the same but with enhanced logging
+    // 🔄 其他验证方法保持不变但带增强日志
     
     private static validateStream(stream: any): boolean {
         if (stream === undefined || stream === null) {
@@ -520,14 +520,14 @@ export class Validator {
     }
     
     /**
-     * 🧹 Enhanced string sanitization
+     * 🧹 增强字符串清理
      */
     public static sanitizeString(input: string): string {
         return input.trim().replace(/[\x00-\x1F\x7F]/g, ''); // Remove control characters
     }
     
     /**
-     * 📋 Validate port number
+     * 📋 验证端口号
      */
     public static validatePort(port: any): number {
         if (typeof port !== 'number' || !Number.isInteger(port)) {
@@ -542,7 +542,7 @@ export class Validator {
     }
     
     /**
-     * 📋 Validate host string
+     * 📋 验证主机字符串
      */
     public static validateHost(host: any): string {
         if (typeof host !== 'string') {

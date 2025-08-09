@@ -1,6 +1,6 @@
 /**
- * VS Code Extension Entry Point
- * Copilot-LMAPI Extension
+ * VS Code 扩展入口点
+ * Copilot-LMAPI 扩展
  */
 
 import * as vscode from 'vscode';
@@ -11,17 +11,18 @@ import { COMMANDS, NOTIFICATIONS, STATUS_BAR_PRIORITIES } from './constants/Conf
 let server: CopilotServer;
 let statusBarItem: vscode.StatusBarItem;
 let outputChannel: vscode.OutputChannel;
+let healthCheckTimer: NodeJS.Timer;
 
 /**
- * Extension activation
+ * 扩展激活
  */
 export function activate(context: vscode.ExtensionContext) {
     logger.info('Copilot-LMAPI extension activating');
 
-    // Initialize server
+    // 初始化服务器
     server = new CopilotServer();
 
-    // Create status bar item
+    // 创建状态栏项目
     statusBarItem = vscode.window.createStatusBarItem(
         vscode.StatusBarAlignment.Right,
         STATUS_BAR_PRIORITIES.SERVER_STATUS
@@ -29,26 +30,47 @@ export function activate(context: vscode.ExtensionContext) {
     statusBarItem.command = COMMANDS.STATUS;
     context.subscriptions.push(statusBarItem);
 
-    // Register commands
+    // 注册命令
     registerCommands(context);
 
-    // Auto-start if configured
+    // 如果配置了则自动启动
     const config = vscode.workspace.getConfiguration('copilot-lmapi');
     if (config.get<boolean>('autoStart', false)) {
         vscode.commands.executeCommand(COMMANDS.START);
     }
 
-    // Update status bar
+    // 设置定期健康检查
+    healthCheckTimer = setInterval(async () => {
+        const hasCopilot = await checkCopilotHealth();
+        if (!hasCopilot && server.getState().isRunning) {
+            logger.warn('Copilot access lost while server is running');
+        }
+    }, 60000); // 每分钟检查一次
+
+    // 将定时器添加到订阅中以便正确清理
+    context.subscriptions.push({
+        dispose: () => {
+            if (healthCheckTimer) {
+                clearInterval(healthCheckTimer);
+            }
+        }
+    });
+
+    // 更新状态栏
     updateStatusBar();
 
     logger.info('Copilot-LMAPI extension activated');
 }
 
 /**
- * Extension deactivation
+ * 扩展停用
  */
 export function deactivate() {
     logger.info('Copilot-LMAPI extension deactivating');
+
+    if (healthCheckTimer) {
+        clearInterval(healthCheckTimer);
+    }
 
     if (server) {
         server.dispose();
@@ -62,10 +84,10 @@ export function deactivate() {
 }
 
 /**
- * Register all extension commands
+ * 注册所有扩展命令
  */
 function registerCommands(context: vscode.ExtensionContext) {
-    // Start server command
+    // 启动服务器命令
     const startCommand = vscode.commands.registerCommand(COMMANDS.START, async () => {
         try {
             if (server.getState().isRunning) {
@@ -83,7 +105,7 @@ function registerCommands(context: vscode.ExtensionContext) {
         }
     });
 
-    // Stop server command
+    // 停止服务器命令
     const stopCommand = vscode.commands.registerCommand(COMMANDS.STOP, async () => {
         try {
             if (!server.getState().isRunning) {
@@ -101,7 +123,7 @@ function registerCommands(context: vscode.ExtensionContext) {
         }
     });
 
-    // Restart server command
+    // 重启服务器命令
     const restartCommand = vscode.commands.registerCommand(COMMANDS.RESTART, async () => {
         try {
             await server.restart();
@@ -115,12 +137,12 @@ function registerCommands(context: vscode.ExtensionContext) {
         }
     });
 
-    // Status command
+    // 状态命令
     const statusCommand = vscode.commands.registerCommand(COMMANDS.STATUS, async () => {
         showServerStatus();
     });
 
-    // Register all commands
+    // 注册所有命令
     context.subscriptions.push(
         startCommand,
         stopCommand,
@@ -128,7 +150,7 @@ function registerCommands(context: vscode.ExtensionContext) {
         statusCommand
     );
 
-    // Register server disposal
+    // 注册服务器清理
     context.subscriptions.push({
         dispose: () => {
             if (server) {
@@ -139,7 +161,7 @@ function registerCommands(context: vscode.ExtensionContext) {
 }
 
 /**
- * Update status bar display
+ * 更新状态栏显示
  */
 function updateStatusBar() {
     const state = server.getState();
@@ -148,7 +170,7 @@ function updateStatusBar() {
     if (state.isRunning) {
         statusBarItem.text = `$(server) LM API :${state.port}`;
         statusBarItem.tooltip = `LM API Server running on http://${state.host}:${state.port}\nClick for details`;
-        statusBarItem.backgroundColor = undefined; // Default (green-ish)
+        statusBarItem.backgroundColor = undefined; // 默认（绿色）
     } else {
         statusBarItem.text = `$(server) LM API (stopped)`;
         statusBarItem.tooltip = 'LM API Server is stopped\nClick to start';
@@ -159,7 +181,7 @@ function updateStatusBar() {
 }
 
 /**
- * Show detailed server status
+ * 显示详细服务器状态
  */
 async function showServerStatus() {
     const state = server.getState();
@@ -231,7 +253,7 @@ async function showServerStatus() {
 }
 
 /**
- * Handle status panel actions
+ * 处理状态面板操作
  */
 async function handleStatusAction(action: string, state: any, config: any) {
     switch (action) {
@@ -259,7 +281,7 @@ async function handleStatusAction(action: string, state: any, config: any) {
 }
 
 /**
- * Format uptime in human-readable format
+ * 将运行时间格式化为可读格式
  */
 function formatUptime(seconds: number): string {
     const hours = Math.floor(seconds / 3600);
@@ -276,7 +298,7 @@ function formatUptime(seconds: number): string {
 }
 
 /**
- * Health check for Copilot availability
+ * Copilot 可用性健康检查
  */
 async function checkCopilotHealth(): Promise<boolean> {
     try {
@@ -289,7 +311,7 @@ async function checkCopilotHealth(): Promise<boolean> {
 }
 
 /**
- * Show Copilot setup instructions if needed
+ * 如需要则显示 Copilot 设置说明
  */
 async function showCopilotSetupIfNeeded() {
     const hasCopilot = await checkCopilotHealth();
@@ -306,11 +328,3 @@ async function showCopilotSetupIfNeeded() {
         }
     }
 }
-
-// Periodic health checks
-setInterval(async () => {
-    const hasCopilot = await checkCopilotHealth();
-    if (!hasCopilot && server.getState().isRunning) {
-        logger.warn('Copilot access lost while server is running');
-    }
-}, 60000); // Check every minute

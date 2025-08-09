@@ -1,6 +1,6 @@
 /**
- * VS Code Language Model API Type Extensions
- * Extended type definitions for VS Code LM API integration
+ * VS Code 语言模型 API 类型扩展
+ * VS Code LM API 集成的扩展类型定义
  */
 
 import * as vscode from 'vscode';
@@ -67,7 +67,7 @@ export interface LogEntry {
     requestId?: string;
 }
 
-// Model mapping for OpenAI to VS Code compatibility
+// OpenAI 到 VS Code 兼容性的模型映射
 export const MODEL_MAPPING: Record<string, ModelSelectionCriteria> = {
     'gpt-4o': { vendor: 'copilot', family: 'gpt-4o' },
     'gpt-4o-mini': { vendor: 'copilot', family: 'gpt-4o-mini' },
@@ -80,7 +80,7 @@ export const MODEL_MAPPING: Record<string, ModelSelectionCriteria> = {
     'claude-3-opus': { vendor: 'copilot', family: 'claude-3-opus' }
 };
 
-// Default models available when VS Code LM API fails
+// VS Code LM API 失败时可用的默认模型
 export const DEFAULT_MODELS: CopilotModelInfo[] = [
     {
         id: 'gpt-4o',

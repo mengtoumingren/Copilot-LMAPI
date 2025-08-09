@@ -1,7 +1,7 @@
 /**
- * 🛠️ Revolutionary Function Calling Service
- * ✨ Bridges OpenAI function calling with VS Code Language Model Tool API
- * 🚀 Full support for dynamic tool discovery and execution!
+ * 🛠️ 革命性函数调用服务
+ * ✨ 连接 OpenAI 函数调用和 VS Code 语言模型工具 API
+ * 🚀 完全支持动态工具发现和执行！
  */
 
 import * as vscode from 'vscode';
@@ -13,7 +13,7 @@ import {
 } from '../types/ModelCapabilities';
 import { logger } from '../utils/Logger';
 
-// 🛠️ Enhanced Tool Definition
+// 🛠️ 增强型工具定义
 export interface EnhancedTool {
     definition: FunctionDefinition;
     handler: (parameters: any, context: ToolExecutionContext) => Promise<any>;
@@ -27,7 +27,7 @@ export interface EnhancedTool {
     };
 }
 
-// 🎯 Tool Execution Context
+// 🎯 工具执行上下文
 export interface ToolExecutionContext {
     requestId: string;
     modelId: string;
@@ -37,7 +37,7 @@ export interface ToolExecutionContext {
     permissions: string[];
 }
 
-// 📋 Tool Registry Entry
+// 📋 工具注册表条目
 export interface ToolRegistryEntry {
     id: string;
     tool: EnhancedTool;
@@ -61,20 +61,20 @@ export class FunctionCallService {
     }
     
     /**
-     * 🚀 Initialize built-in tools
+     * 🚀 初始化内置工具
      */
     private initializeBuiltInTools(): void {
-        // 📊 Calculator Tool
+        // 📊 计算器工具
         this.registerTool('calculator', {
             definition: {
                 name: 'calculator',
-                description: 'Perform mathematical calculations',
+                description: '执行数学计算',
                 parameters: {
                     type: 'object',
                     properties: {
                         expression: {
                             type: 'string',
-                            description: 'Mathematical expression to evaluate'
+                            description: '要评估的数学表达式'
                         }
                     },
                     required: ['expression']
@@ -83,28 +83,28 @@ export class FunctionCallService {
             handler: this.calculatorHandler.bind(this),
             metadata: {
                 category: 'math',
-                description: 'Built-in calculator for mathematical operations',
+                description: '用于数学运算的内置计算器',
                 version: '1.0.0',
                 author: 'copilot-lmapi'
             }
         });
         
-        // 📅 Date/Time Tool
+        // 📅 日期/时间工具
         this.registerTool('datetime', {
             definition: {
                 name: 'datetime',
-                description: 'Get current date and time information',
+                description: '获取当前日期和时间信息',
                 parameters: {
                     type: 'object',
                     properties: {
                         format: {
                             type: 'string',
-                            description: 'Date format (iso, locale, timestamp)',
+                            description: '日期格式 (iso, locale, timestamp)'
                             enum: ['iso', 'locale', 'timestamp']
                         },
                         timezone: {
                             type: 'string',
-                            description: 'Timezone (optional)'
+                            description: '时区（可选）'
                         }
                     },
                     required: []
@@ -113,27 +113,27 @@ export class FunctionCallService {
             handler: this.datetimeHandler.bind(this),
             metadata: {
                 category: 'utility',
-                description: 'Get current date and time in various formats',
+                description: '以各种格式获取当前日期和时间',
                 version: '1.0.0',
                 author: 'copilot-lmapi'
             }
         });
         
-        // 📁 File System Tool (Read-Only)
+        // 📁 文件系统工具（只读）
         this.registerTool('file_info', {
             definition: {
                 name: 'file_info',
-                description: 'Get information about files and directories (read-only)',
+                description: '获取文件和目录信息（只读）',
                 parameters: {
                     type: 'object',
                     properties: {
                         path: {
                             type: 'string',
-                            description: 'File or directory path'
+                            description: '文件或目录路径'
                         },
                         operation: {
                             type: 'string',
-                            description: 'Operation type',
+                            description: '操作类型',
                             enum: ['stat', 'list', 'exists']
                         }
                     },
@@ -143,17 +143,17 @@ export class FunctionCallService {
             handler: this.fileInfoHandler.bind(this),
             metadata: {
                 category: 'filesystem',
-                description: 'Read-only file system operations',
+                description: '只读文件系统操作',
                 version: '1.0.0',
                 author: 'copilot-lmapi'
             }
         });
         
-        logger.info(`🛠️ Initialized ${this.builtInTools.size} built-in tools`);
+        logger.info(`🛠️ 初始化了 ${this.builtInTools.size} 个内置工具`);
     }
     
     /**
-     * 📝 Register a new tool
+     * 📝 注册新工具
      */
     public registerTool(id: string, tool: EnhancedTool): void {
         const entry: ToolRegistryEntry = {
@@ -167,7 +167,7 @@ export class FunctionCallService {
         this.toolRegistry.set(id, entry);
         this.builtInTools.set(id, tool);
         
-        logger.info(`✅ Registered tool: ${id}`);
+        logger.info(`✅ 已注册工具： ${id}`);
         
         this.eventEmitter.fire({
             type: 'tool_registered',
@@ -176,18 +176,18 @@ export class FunctionCallService {
     }
     
     /**
-     * 🚀 Convert OpenAI functions to VS Code tools format
+     * 🚀 将 OpenAI 函数转换为 VS Code 工具格式
      */
     public convertFunctionsToTools(functions: FunctionDefinition[]): any[] {
         const tools: any[] = [];
         
         for (const func of functions) {
             try {
-                // Check if we have a handler for this function
+                // 检查是否有此函数的处理程序
                 const registryEntry = this.toolRegistry.get(func.name);
                 
                 if (registryEntry && registryEntry.isEnabled) {
-                    // Create VS Code tool - using basic object for compatibility
+                    // 创建 VS Code 工具 - 为兼容性使用基本对象
                     const tool = {
                         name: func.name,
                         description: func.description || '',
@@ -196,10 +196,10 @@ export class FunctionCallService {
                     
                     tools.push(tool);
                 } else {
-                    logger.warn(`⚠️ Function ${func.name} not found in registry or disabled`);
+                    logger.warn(`⚠️ 函数 ${func.name} 在注册表中未找到或已禁用`);
                 }
             } catch (error) {
-                logger.error(`Failed to convert function ${func.name}:`, error as Error);
+                logger.error(`转换函数 ${func.name} 失败：`, error as Error);
             }
         }
         
@@ -207,7 +207,7 @@ export class FunctionCallService {
     }
     
     /**
-     * 🎯 Execute a tool call
+     * 🎯 执行工具调用
      */
     public async executeToolCall(
         toolCall: ToolCall, 
@@ -218,51 +218,51 @@ export class FunctionCallService {
         const toolName = toolCall.function.name;
         
         try {
-            // Get tool from registry
+            // 从注册表获取工具
             const registryEntry = this.toolRegistry.get(toolName);
             
             if (!registryEntry) {
-                throw new Error(`Tool ${toolName} not found`);
+                throw new Error(`工具 ${toolName} 未找到`);
             }
             
             if (!registryEntry.isEnabled) {
-                throw new Error(`Tool ${toolName} is disabled`);
+                throw new Error(`工具 ${toolName} 已禁用`);
             }
             
-            // Parse arguments
+            // 解析参数
             let parameters: any;
             try {
                 parameters = JSON.parse(toolCall.function.arguments);
             } catch (error) {
-                throw new Error(`Invalid JSON arguments: ${error}`);
+                throw new Error(`无效的 JSON 参数： ${error}`);
             }
             
-            // Validate parameters against schema
+            // 根据模式验证参数
             const validationResult = this.validateParameters(
                 parameters, 
                 registryEntry.tool.definition.parameters
             );
             
             if (!validationResult.isValid) {
-                throw new Error(`Parameter validation failed: ${validationResult.error}`);
+                throw new Error(`参数验证失败： ${validationResult.error}`);
             }
             
-            // Execute the tool
-            logger.info(`🛠️ Executing tool: ${toolName}`, { parameters, requestId: context.requestId });
+            // 执行工具
+            logger.info(`🛠️ 正在执行工具： ${toolName}`, { parameters, requestId: context.requestId });
             
             const result = await Promise.race([
                 registryEntry.tool.handler(parameters, context),
                 new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Tool execution timeout')), 30000)
+                    setTimeout(() => reject(new Error('工具执行超时')), 30000)
                 )
             ]);
             
-            // Update metrics
+            // 更新指标
             registryEntry.usageCount++;
             registryEntry.lastUsed = new Date();
             
             const executionTime = Date.now() - startTime;
-            logger.info(`✅ Tool executed successfully: ${toolName} (${executionTime}ms)`);
+            logger.info(`✅ 工具执行成功： ${toolName} (${executionTime}ms)`);
             
             this.eventEmitter.fire({
                 type: 'tool_executed',
@@ -272,7 +272,7 @@ export class FunctionCallService {
             return { success: true, result };
             
         } catch (error) {
-            // Update error metrics
+            // 更新错误指标
             const registryEntry = this.toolRegistry.get(toolName);
             if (registryEntry) {
                 registryEntry.errorCount++;
@@ -281,7 +281,7 @@ export class FunctionCallService {
             const executionTime = Date.now() - startTime;
             const errorMessage = error instanceof Error ? error.message : String(error);
             
-            logger.error(`❌ Tool execution failed: ${toolName} (${executionTime}ms)`, error as Error, {
+            logger.error(`❌ 工具执行失败： ${toolName} (${executionTime}ms)`, error as Error, {
                 requestId: context.requestId
             });
             
@@ -295,15 +295,15 @@ export class FunctionCallService {
     }
     
     /**
-     * 📋 Validate parameters against schema
+     * 📋 根据模式验证参数
      */
     private validateParameters(parameters: any, schema: any): { isValid: boolean; error?: string } {
         try {
-            // Basic validation - in production, use a proper JSON schema validator
+            // 基本验证 - 在生产中使用适当的 JSON 模式验证器
             if (schema.required) {
                 for (const required of schema.required) {
                     if (!(required in parameters)) {
-                        return { isValid: false, error: `Missing required parameter: ${required}` };
+                        return { isValid: false, error: `缺少必需参数： ${required}` };
                     }
                 }
             }
@@ -315,20 +315,20 @@ export class FunctionCallService {
     }
     
     /**
-     * 📊 Calculator tool handler
+     * 📊 计算器工具处理程序
      */
     private async calculatorHandler(parameters: any, context: ToolExecutionContext): Promise<any> {
         const { expression } = parameters;
         
-        // Safe expression evaluation (basic operations only)
+        // 安全表达式评估（仅基本操作）
         const safeExpression = expression.replace(/[^0-9+\-*/().\s]/g, '');
         
         try {
-            // Use Function constructor for safe evaluation
+            // 使用 Function 构造函数进行安全评估
             const result = new Function('return ' + safeExpression)();
             
             if (typeof result !== 'number' || !isFinite(result)) {
-                throw new Error('Invalid calculation result');
+                throw new Error('无效的计算结果');
             }
             
             return {
@@ -337,12 +337,12 @@ export class FunctionCallService {
                 type: 'calculation'
             };
         } catch (error) {
-            throw new Error(`Calculation error: ${error}`);
+            throw new Error(`计算错误： ${error}`);
         }
     }
     
     /**
-     * 📅 Date/time tool handler
+     * 📅 日期/时间工具处理程序
      */
     private async datetimeHandler(parameters: any, context: ToolExecutionContext): Promise<any> {
         const { format = 'iso', timezone } = parameters;
@@ -373,7 +373,7 @@ export class FunctionCallService {
     }
     
     /**
-     * 📁 File info tool handler
+     * 📁 文件信息工具处理程序
      */
     private async fileInfoHandler(parameters: any, context: ToolExecutionContext): Promise<any> {
         const { path, operation } = parameters;
@@ -404,20 +404,20 @@ export class FunctionCallService {
                     const entries = await fs.readdir(path);
                     return {
                         path,
-                        entries: entries.slice(0, 100), // Limit results
+                        entries: entries.slice(0, 100), // 限制结果
                         total: entries.length
                     };
                 
                 default:
-                    throw new Error(`Unknown operation: ${operation}`);
+                    throw new Error(`未知操作： ${operation}`);
             }
         } catch (error) {
-            throw new Error(`File operation failed: ${error}`);
+            throw new Error(`文件操作失败： ${error}`);
         }
     }
     
     /**
-     * 📋 Get available tools for model
+     * 📋 获取模型可用的工具
      */
     public getAvailableTools(modelCapabilities: ModelCapabilities): FunctionDefinition[] {
         const tools: FunctionDefinition[] = [];
@@ -436,7 +436,7 @@ export class FunctionCallService {
     }
     
     /**
-     * 📋 Get tool usage statistics
+     * 📋 获取工具使用统计信息
      */
     public getToolStats(): { [toolId: string]: { usageCount: number; errorCount: number; lastUsed?: Date } } {
         const stats: { [toolId: string]: { usageCount: number; errorCount: number; lastUsed?: Date } } = {};
@@ -453,20 +453,20 @@ export class FunctionCallService {
     }
     
     /**
-     * 🔄 Enable/disable a tool
+     * 🔄 启用/禁用工具
      */
     public setToolEnabled(toolId: string, enabled: boolean): boolean {
         const entry = this.toolRegistry.get(toolId);
         if (entry) {
             entry.isEnabled = enabled;
-            logger.info(`Tool ${toolId} ${enabled ? 'enabled' : 'disabled'}`);
+            logger.info(`工具 ${toolId} ${enabled ? '已启用' : '已禁用'}`);
             return true;
         }
         return false;
     }
     
     /**
-     * 🧹 Cleanup resources
+     * 🧹 清理资源
      */
     public dispose(): void {
         this.eventEmitter.dispose();

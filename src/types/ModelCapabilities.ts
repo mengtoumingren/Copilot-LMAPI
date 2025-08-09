@@ -1,45 +1,45 @@
 /**
- * Dynamic Model Capabilities and Discovery System
- * 🚀 Revolutionary model management without hardcoded limitations
+ * 动态模型能力和发现系统
+ * 🚀 革命性模型管理，无硬编码限制
  */
 
 import * as vscode from 'vscode';
 
-// 🎯 Dynamic Model Capabilities
+// 🎯 动态模型能力
 export interface ModelCapabilities {
     id: string;
     family?: string;
     vendor?: string;
     version?: string;
     
-    // Core capabilities
+    // 核心能力
     maxInputTokens: number;
     maxOutputTokens?: number;
     contextWindow: number;
     
-    // Feature support detection
+    // 功能支持检测
     supportsVision: boolean;
     supportsTools: boolean;
     supportsFunctionCalling: boolean;
     supportsStreaming: boolean;
     supportsMultimodal: boolean;
     
-    // Performance metrics
+    // 性能指标
     lastTestedAt?: Date;
     responseTime?: number;
     successRate?: number;
     isHealthy: boolean;
     
-    // Advanced features
+    // 高级功能
     supportedImageFormats?: string[];
     maxImageSize?: number;
     maxImagesPerRequest?: number;
     
-    // Raw VS Code model reference
+    // 原始 VS Code 模型引用
     vsCodeModel: vscode.LanguageModelChat;
 }
 
-// 🔧 Model Selection Criteria (Dynamic)
+// 🔧 模型选择标准（动态）
 export interface DynamicModelCriteria {
     preferredModels?: string[];
     requiredCapabilities?: (keyof ModelCapabilities)[];
@@ -50,7 +50,7 @@ export interface DynamicModelCriteria {
     sortBy?: 'performance' | 'tokens' | 'capabilities' | 'health';
 }
 
-// 🎨 Enhanced Message Types for Multimodal
+// 🎨 用于多模态的增强消息类型
 export interface EnhancedMessage {
     role: 'system' | 'user' | 'assistant';
     content: string | Array<{
@@ -66,7 +66,7 @@ export interface EnhancedMessage {
     tool_call_id?: string;
 }
 
-// 🛠️ Function/Tool Calling Support
+// 🛠️ 函数/工具调用支持
 export interface ToolCall {
     id: string;
     type: 'function';
@@ -86,7 +86,7 @@ export interface FunctionDefinition {
     };
 }
 
-// 📈 Model Performance Metrics
+// 📈 模型性能指标
 export interface ModelMetrics {
     totalRequests: number;
     successfulRequests: number;
@@ -96,7 +96,7 @@ export interface ModelMetrics {
     currentLoad: number;
 }
 
-// 🧠 Model Discovery Configuration
+// 🧠 模型发现配置
 export interface ModelDiscoveryConfig {
     enableCaching: boolean;
     cacheRefreshInterval: number;
@@ -106,7 +106,7 @@ export interface ModelDiscoveryConfig {
     enableAutoFailover: boolean;
 }
 
-// 🎪 Model Pool Management
+// 🎪 模型池管理
 export interface ModelPool {
     primary: ModelCapabilities[];
     secondary: ModelCapabilities[];
@@ -115,7 +115,7 @@ export interface ModelPool {
     lastUpdated: Date;
 }
 
-// 📋 Request Context with Enhanced Features
+// 📋 带有增强功能的请求上下文
 export interface EnhancedRequestContext {
     requestId: string;
     model?: string;
@@ -124,7 +124,7 @@ export interface EnhancedRequestContext {
     clientIP?: string;
     userAgent?: string;
     
-    // New capabilities
+    // 新能力
     hasImages: boolean;
     hasFunctions: boolean;
     requiredCapabilities: string[];
@@ -132,32 +132,32 @@ export interface EnhancedRequestContext {
     selectedModel?: ModelCapabilities;
 }
 
-// 🎛️ Dynamic Configuration Interface
+// 🎛️ 动态配置接口
 export interface DynamicModelConfig {
-    // Remove all hardcoded limitations
+    // 移除所有硬编码限制
     allowAllModels: boolean;
     
-    // Intelligent model selection
+    // 智能模型选择
     enableSmartSelection: boolean;
     enableLoadBalancing: boolean;
     enableAutoFailover: boolean;
     
-    // Performance optimization
+    // 性能优化
     enableModelCaching: boolean;
     enableCapabilityTesting: boolean;
     enablePerformanceMonitoring: boolean;
     
-    // Feature gates
+    // 功能门控
     enableVisionSupport: boolean;
     enableFunctionCalling: boolean;
     enableMultimodalRequests: boolean;
     
-    // Limits (soft, not hardcoded)
+    // 限制（软性，非硬编码）
     preferredMaxTokens?: number;
     emergencyFallbackModel?: string;
 }
 
-// 🚀 Model Discovery Events
+// 🚀 模型发现事件
 export type ModelEvent = 
     | { type: 'model_discovered'; model: ModelCapabilities }
     | { type: 'model_health_changed'; modelId: string; isHealthy: boolean }
@@ -165,7 +165,7 @@ export type ModelEvent =
     | { type: 'pool_refreshed'; pool: ModelPool }
     | { type: 'failover_triggered'; from: string; to: string; reason: string };
 
-// 🎯 Export all dynamic types
+// 🎯 导出所有动态类型
 export {
-    vscode // Re-export for convenience
+    vscode // 为方便起见重新导出
 };

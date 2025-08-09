@@ -1,7 +1,7 @@
 /**
- * 🚀 REVOLUTIONARY Enhanced Copilot Server
- * ✨ NO HARDCODED LIMITATIONS - Fully dynamic model support!
- * 🎨 Complete multimodal, function calling, and intelligent model selection
+ * 🚀 革命性增强型 Copilot 服务器
+ * ✨ 无硬编码限制 - 完全动态模型支持！
+ * 🎨 完整的多模态、函数调用和智能模型选择
  */
 
 import * as http from 'http';
@@ -43,21 +43,21 @@ export class CopilotServer {
         };
         this.activeRequests = new Map();
         
-        // Listen for configuration changes
+        // 监听配置更改
         vscode.workspace.onDidChangeConfiguration(this.onConfigurationChanged.bind(this));
         
-        // Initialize enhanced features
+        // 初始化增强功能
         this.initializeEnhancedFeatures();
     }
     
     /**
-     * 🚀 Initialize enhanced features
+     * 🚀 初始化增强功能
      */
     private async initializeEnhancedFeatures(): Promise<void> {
         try {
             logger.info('🚀 Initializing enhanced server features...');
             
-            // Start model discovery
+            // 启动模型发现
             await this.modelDiscovery.discoverAllModels();
             
             logger.info('✅ Enhanced server features initialized!');
@@ -67,7 +67,7 @@ export class CopilotServer {
     }
     
     /**
-     * 🚀 Start the enhanced HTTP server
+     * 🚀 启动增强HTTP服务器
      */
     public async start(port?: number): Promise<void> {
         if (this.state.isRunning) {
@@ -77,7 +77,7 @@ export class CopilotServer {
         const serverPort = port || this.config.port;
         const serverHost = this.config.host;
         
-        // Validate configuration
+        // 验证配置
         Validator.validatePort(serverPort);
         Validator.validateHost(serverHost);
         
@@ -85,13 +85,13 @@ export class CopilotServer {
             try {
                 this.server = http.createServer(this.handleRequest.bind(this));
                 
-                // Configure enhanced server settings
+                // 配置增强服务器设置
                 this.server.keepAliveTimeout = 65000;
                 this.server.headersTimeout = 66000;
                 this.server.maxRequestsPerSocket = 1000;
                 this.server.requestTimeout = this.config.requestTimeout;
                 
-                // Set up enhanced event handlers
+                // 设置增强事件处理器
                 this.setupEnhancedServerEventHandlers();
                 
                 this.server.listen(serverPort, serverHost, () => {
@@ -142,7 +142,7 @@ export class CopilotServer {
     }
     
     /**
-     * 🔄 Enhanced request handler
+     * 🔄 增强请求处理器
      */
     private async handleRequest(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
         if (this.isShuttingDown) {
@@ -153,42 +153,43 @@ export class CopilotServer {
         const requestId = this.generateRequestId();
         const startTime = new Date();
         
-        // Track active request
+        // 追踪活动请求
         this.activeRequests.set(requestId, { req, res, startTime });
         this.state.activeConnections = this.activeRequests.size;
         
-        // Set timeout for this request
+        // 为此请求设置超时
         req.setTimeout(this.config.requestTimeout, () => {
             this.handleRequestTimeout(requestId, res);
         });
         
         try {
-            // Increment request counter
+            // 增加请求计数器
             this.state.requestCount++;
             
-            // Parse URL
-            const url = new URL(req.url || '/', `http://${req.headers.host}`);
+            // 解析URL，为缺少的host头提供退回
+            const hostHeader = req.headers.host || `${this.config.host}:${this.config.port}`;
+            const url = new URL(req.url || '/', `http://${hostHeader}`);
             const method = req.method || 'GET';
             
-            // Log enhanced request
+            // 记录增强请求
             logger.logRequest(method, url.pathname, requestId);
             
-            // Add CORS headers
+            // 添加CORS头
             this.addCORSHeaders(res);
             
-            // Handle preflight requests
+            // 处理预检请求
             if (method === 'OPTIONS') {
                 this.handlePreflight(res);
                 return;
             }
             
-            // Enhanced rate limiting check
+            // 增强速率限制检查
             if (!this.checkEnhancedRateLimit(req)) {
                 this.sendError(res, HTTP_STATUS.TOO_MANY_REQUESTS, 'Rate limit exceeded', requestId);
                 return;
             }
             
-            // Route to enhanced handlers
+            // 路由到增强处理器
             await this.routeEnhancedRequest(url.pathname, method, req, res, requestId);
             
         } catch (error) {
@@ -199,18 +200,18 @@ export class CopilotServer {
                 this.sendError(res, HTTP_STATUS.INTERNAL_SERVER_ERROR, 'Internal server error', requestId);
             }
         } finally {
-            // Clean up request tracking
+            // 清理请求追踪
             this.activeRequests.delete(requestId);
             this.state.activeConnections = this.activeRequests.size;
             
-            // Log enhanced response
+            // 记录增强响应
             const duration = Date.now() - startTime.getTime();
             logger.logResponse(res.statusCode || 500, requestId, duration);
         }
     }
     
     /**
-     * 🎯 Route requests to enhanced handlers
+     * 🎯 路由请求到增强处理器
      */
     private async routeEnhancedRequest(
         pathname: string,
@@ -252,7 +253,7 @@ export class CopilotServer {
                 }
                 break;
                 
-            // 🚀 Enhanced endpoints
+            // 🚀 增强端点
             case '/v1/models/refresh':
                 if (method === 'POST') {
                     await this.handleModelRefresh(req, res, requestId);
@@ -275,7 +276,7 @@ export class CopilotServer {
     }
     
     /**
-     * 🔄 Handle model refresh endpoint
+     * 🔄 处理模型刷新端点
      */
     private async handleModelRefresh(
         req: http.IncomingMessage,
@@ -301,7 +302,7 @@ export class CopilotServer {
     }
     
     /**
-     * 📋 Handle capabilities endpoint
+     * 📋 处理能力端点
      */
     private async handleCapabilities(
         req: http.IncomingMessage,
@@ -349,7 +350,7 @@ export class CopilotServer {
     }
     
     /**
-     * 🔄 Enhanced server event handlers
+     * 🔄 增强服务器事件处理器
      */
     private setupEnhancedServerEventHandlers(): void {
         if (!this.server) return;
@@ -372,28 +373,28 @@ export class CopilotServer {
     }
     
     /**
-     * 📊 Enhanced rate limiting
+     * 📊 增强速率限制
      */
     private checkEnhancedRateLimit(req: http.IncomingMessage): boolean {
-        // Enhanced rate limiting with IP tracking
+        // 带IP追踪的增强速率限制
         return this.activeRequests.size < this.config.maxConcurrentRequests;
     }
     
     /**
-     * 🔄 Enhanced CORS headers
+     * 🔄 增强CORS头
      */
     private addCORSHeaders(res: http.ServerResponse): void {
         Object.entries(CORS_HEADERS).forEach(([key, value]) => {
             res.setHeader(key, value);
         });
         
-        // Enhanced headers for multimodal support
+        // 为多模态支持的增强头
         res.setHeader('X-Enhanced-Features', 'multimodal,functions,dynamic-models');
         res.setHeader('X-API-Version', '2.0.0-enhanced');
     }
     
     /**
-     * 🔄 Handle preflight OPTIONS request
+     * 🔄 处理预检OPTIONS请求
      */
     private handlePreflight(res: http.ServerResponse): void {
         res.writeHead(HTTP_STATUS.OK);
@@ -401,7 +402,7 @@ export class CopilotServer {
     }
     
     /**
-     * ⏰ Handle request timeout
+     * ⏰ 处理请求超时
      */
     private handleRequestTimeout(requestId: string, res: http.ServerResponse): void {
         logger.warn('Enhanced request timeout', {}, requestId);
@@ -414,7 +415,7 @@ export class CopilotServer {
     }
     
     /**
-     * ❌ Send enhanced error response
+     * ❌ 发送增强错误响应
      */
     private sendError(res: http.ServerResponse, statusCode: number, message: string, requestId?: string): void {
         if (res.headersSent) {
@@ -438,14 +439,14 @@ export class CopilotServer {
     }
     
     /**
-     * 📋 Generate unique request ID
+     * 📋 生成唯一请求ID
      */
     private generateRequestId(): string {
         return `enhanced_req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     }
     
     /**
-     * 🔄 Stop the enhanced server
+     * 🔄 停止增强服务器
      */
     public async stop(): Promise<void> {
         if (!this.state.isRunning || !this.server) {
@@ -455,7 +456,7 @@ export class CopilotServer {
         this.isShuttingDown = true;
         
         return new Promise((resolve) => {
-            // Close all active requests first
+            // 首先关闭所有活动请求
             this.closeActiveRequests();
             
             this.server!.close(() => {
@@ -471,7 +472,7 @@ export class CopilotServer {
                 resolve();
             });
             
-            // Force close after timeout
+            // 超时后强制关闭
             setTimeout(() => {
                 this.server?.closeAllConnections?.();
                 resolve();
@@ -480,7 +481,7 @@ export class CopilotServer {
     }
     
     /**
-     * 🔄 Restart the enhanced server
+     * 🔄 重启增强服务器
      */
     public async restart(): Promise<void> {
         await this.stop();
@@ -488,21 +489,21 @@ export class CopilotServer {
     }
     
     /**
-     * 📋 Get current server state
+     * 📋 获取当前服务器状态
      */
     public getState(): ServerState {
         return { ...this.state };
     }
     
     /**
-     * 📋 Get server configuration
+     * 📋 获取服务器配置
      */
     public getConfig(): ServerConfig {
         return { ...this.config };
     }
     
     /**
-     * 🔄 Close all active requests
+     * 🔄 关闭所有活动请求
      */
     private closeActiveRequests(): void {
         for (const [requestId, { res }] of this.activeRequests.entries()) {
@@ -518,7 +519,7 @@ export class CopilotServer {
     }
     
     /**
-     * 🔄 Load enhanced configuration
+     * 🔄 加载增强配置
      */
     private loadConfig(): ServerConfig {
         const config = vscode.workspace.getConfiguration('copilot-lmapi');
@@ -540,7 +541,7 @@ export class CopilotServer {
     }
     
     /**
-     * 🔄 Handle configuration changes
+     * 🔄 处理配置更改
      */
     private onConfigurationChanged(event: vscode.ConfigurationChangeEvent): void {
         if (event.affectsConfiguration('copilot-lmapi')) {
@@ -554,7 +555,7 @@ export class CopilotServer {
                 new: newConfig
             });
             
-            // Restart server if critical settings changed
+            // 如果关键设置更改则重启服务器
             if (this.state.isRunning && 
                 (oldConfig.port !== newConfig.port || oldConfig.host !== newConfig.host)) {
                 
@@ -573,7 +574,7 @@ export class CopilotServer {
     }
     
     /**
-     * 🧹 Dispose enhanced resources
+     * 🧹 释放增强资源
      */
     public dispose(): void {
         this.stop().catch(error => {

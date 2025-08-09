@@ -1,6 +1,6 @@
 /**
- * OpenAI API Type Definitions
- * Complete type definitions for OpenAI Chat Completions API
+ * OpenAI API 类型定义
+ * OpenAI Chat Completions API 的完整类型定义
  */
 
 export interface OpenAIMessage {
@@ -133,18 +133,18 @@ export interface OpenAIErrorResponse {
     error: OpenAIError['error'];
 }
 
-// 🚀 REVOLUTIONARY: NO MORE HARDCODED MODEL LIMITATIONS!
-// Dynamic model support - any model supported by VS Code LM API is supported!
+// 🚀 革命性：不再有硬编码模型限制！
+// 动态模型支持 - 支持 VS Code LM API 支持的任何模型！
 
 export interface ValidatedRequest extends OpenAICompletionRequest {
-    model: string; // ✨ Any model! No restrictions!
+    model: string; // ✨ 任何模型！无限制！
     messages: OpenAIMessage[];
     stream: boolean;
     temperature: number;
     max_tokens?: number;
 }
 
-// Event types for Server-Sent Events
+// 服务器发送事件的事件类型
 export type SSEEvent = 
     | { type: 'data'; data: OpenAIStreamResponse }
     | { type: 'done' }

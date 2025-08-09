@@ -2,13 +2,11 @@ name: Package VSIX
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, dev ]
     paths:
       - 'src/**/*.ts'
   pull_request:
-    branches: [ main ]
-    paths:
-      - 'src/**/*.ts'
+    branches: [ main, dev ]
   workflow_dispatch:
 
 jobs:

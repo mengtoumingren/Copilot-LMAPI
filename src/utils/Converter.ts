@@ -1,7 +1,7 @@
 /**
- * 🎨 Enhanced Multimodal Converter
- * Revolutionary conversion between OpenAI API and VS Code LM API
- * ✨ Full support for images, functions, and dynamic models!
+ * 🎨 增强型多模态转换器
+ * OpenAI API 与 VS Code LM API 之间的革命性转换
+ * ✨ 完全支持图像、函数和动态模型！
  */
 
 import * as vscode from 'vscode';
@@ -25,8 +25,8 @@ import { logger } from './Logger';
 export class Converter {
     
     /**
-     * 🎨 Convert enhanced messages to VS Code LM API format
-     * ✨ SUPPORTS IMAGES AND MULTIMODAL CONTENT!
+     * 🎨 将增强消息转换为 VS Code LM API 格式
+     * ✨ 支持图像和多模态内容！
      */
     public static async convertMessagesToVSCode(
         messages: EnhancedMessage[], 
@@ -41,8 +41,8 @@ export class Converter {
                     vsCodeMessages.push(vsCodeMessage);
                 }
             } catch (error) {
-                logger.error(`Failed to convert message:`, error as Error, { message });
-                // Fallback to text-only content
+                logger.error(`转换消息失败：`, error as Error, { message });
+                // 回退到仅文本内容
                 if (typeof message.content === 'string') {
                     vsCodeMessages.push(new vscode.LanguageModelChatMessage(
                         this.mapRoleToVSCode(message.role),
@@ -56,14 +56,14 @@ export class Converter {
     }
     
     /**
-     * 📋 Convert a single enhanced message
+     * 📋 转换单个增强消息
      */
     private static async convertSingleMessage(
         message: EnhancedMessage, 
         selectedModel: ModelCapabilities
     ): Promise<vscode.LanguageModelChatMessage | null> {
         
-        // Handle simple text messages
+        // 处理简单文本消息
         if (typeof message.content === 'string') {
             return new vscode.LanguageModelChatMessage(
                 this.mapRoleToVSCode(message.role),
@@ -71,7 +71,7 @@ export class Converter {
             );
         }
         
-        // Handle complex multimodal content
+        // 处理复杂的多模态内容
         if (Array.isArray(message.content)) {
             return await this.convertMultimodalMessage(message, selectedModel);
         }
@@ -80,7 +80,7 @@ export class Converter {
     }
     
     /**
-     * 🖼️ Convert multimodal message with images
+     * 🖼️ 转换带图像的多模态消息
      */
     private static async convertMultimodalMessage(
         message: EnhancedMessage,
@@ -100,30 +100,30 @@ export class Converter {
                 
             } else if (part.type === 'image_url' && part.image_url) {
                 
-                // 🔥 REVOLUTIONARY: Process images if model supports vision!
+                // 🔥 革命性：如果模型支持视觉则处理图像！
                 if (selectedModel.supportsVision) {
                     try {
                         const imageContent = await this.processImageContent(part.image_url.url);
                         if (imageContent) {
                             textContent += `\n[Image: ${imageContent.description}]\n`;
-                            // Note: VS Code LM API might handle images differently
-                            // This is a text representation for now
+                            // 注意：VS Code LM API 可能以不同方式处理图像
+                            // 目前这是一个文本表示
                         }
                     } catch (error) {
-                        logger.warn(`Failed to process image:`, error as Error);
+                        logger.warn(`处理图像失败：`, error as Error);
                         textContent += `\n[Image: ${part.image_url.url}]\n`;
                     }
                 } else {
-                    logger.warn(`Model ${selectedModel.id} doesn't support vision, skipping image`);
-                    textContent += `\n[Image not supported by selected model]\n`;
+                    logger.warn(`模型 ${selectedModel.id} 不支持视觉，跳过图像`);
+                    textContent += `\n[所选模型不支持图像]\n`;
                 }
             }
         }
         
-        // Add text part
+        // 添加文本部分
         contentParts.push(new vscode.LanguageModelTextPart(textContent));
         
-        // Create the message with proper role mapping
+        // 使用正确的角色映射创建消息
         return new vscode.LanguageModelChatMessage(
             this.mapRoleToVSCode(message.role),
             contentParts
@@ -131,13 +131,13 @@ export class Converter {
     }
     
     /**
-     * 🖼️ Process image content (Base64, URL, or file path)
+     * 🖼️ 处理图像内容（Base64、URL 或文件路径）
      */
     private static async processImageContent(imageUrl: string): Promise<{ description: string; data?: string } | null> {
         try {
-            // Handle different image sources
+            // 处理不同的图像源
             if (imageUrl.startsWith('data:image/')) {
-                // Base64 encoded image
+                // Base64 编码图像
                 const [header, data] = imageUrl.split(',');
                 const mimeType = header.match(/data:([^;]+)/)?.[1] || 'image/jpeg';
                 return {
@@ -146,13 +146,13 @@ export class Converter {
                 };
                 
             } else if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-                // URL image - for security, we'll just note it
+                // URL 图像 - 出于安全考虑，我们只记录它
                 return {
                     description: `Remote image from ${new URL(imageUrl).hostname}`
                 };
                 
             } else if (imageUrl.startsWith('file://') || fs.existsSync(imageUrl)) {
-                // Local file
+                // 本地文件
                 const filePath = imageUrl.startsWith('file://') ? imageUrl.slice(7) : imageUrl;
                 const ext = path.extname(filePath).toLowerCase();
                 const supportedFormats = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
@@ -173,7 +173,7 @@ export class Converter {
     }
     
     /**
-     * 🔄 Map OpenAI roles to VS Code roles
+     * 🔄 将 OpenAI 角色映射到 VS Code 角色
      */
     private static mapRoleToVSCode(role: string): vscode.LanguageModelChatMessageRole {
         switch (role) {
@@ -188,7 +188,7 @@ export class Converter {
     }
     
     /**
-     * 🏷️ Format role prefix for content
+     * 🏷️ 为内容格式化角色前缀
      */
     private static formatRolePrefix(role: string): string {
         switch (role) {
@@ -203,7 +203,7 @@ export class Converter {
     }
     
     /**
-     * 📝 Create enhanced completion response
+     * 📝 创建增强完成响应
      */
     public static createCompletionResponse(
         content: string,
@@ -216,7 +216,7 @@ export class Converter {
             id: `chatcmpl-${context.requestId}`,
             object: 'chat.completion',
             created: now,
-            model: selectedModel.id, // Use actual model ID
+            model: selectedModel.id, // 使用实际模型 ID
             choices: [{
                 index: 0,
                 message: {
@@ -235,7 +235,7 @@ export class Converter {
     }
     
     /**
-     * 🌊 Create enhanced streaming response chunk
+     * 🌊 创建增强流式响应块
      */
     public static createStreamChunk(
         content: string,
@@ -250,7 +250,7 @@ export class Converter {
             id: `chatcmpl-${context.requestId}`,
             object: 'chat.completion.chunk',
             created: now,
-            model: selectedModel.id, // Use actual model ID
+            model: selectedModel.id, // 使用实际模型 ID
             choices: [{
                 index: 0,
                 delta: {},
@@ -271,7 +271,7 @@ export class Converter {
     }
     
     /**
-     * 📋 Create dynamic models response
+     * 📋 创建动态模型响应
      */
     public static createModelsResponse(availableModels: ModelCapabilities[]): OpenAIModelsResponse {
         const now = Math.floor(Date.now() / 1000);
@@ -281,7 +281,7 @@ export class Converter {
             object: 'model',
             created: now,
             owned_by: model.vendor || 'vs-code',
-            // Add custom metadata about capabilities
+            // 添加关于能力的自定义元数据
             permission: [{
                 id: `perm-${model.id}`,
                 object: 'model_permission',
@@ -304,7 +304,7 @@ export class Converter {
     }
     
     /**
-     * 🌊 Extract content from VS Code LM response stream with enhanced context
+     * 🌊 从带有增强上下文的 VS Code LM 响应流中提取内容
      */
     public static async *extractStreamContent(
         response: vscode.LanguageModelChatResponse,
@@ -327,7 +327,7 @@ export class Converter {
                 }
             }
             
-            // Send final chunk
+            // 发送最终块
             yield this.createSSEEvent('data', this.createStreamChunk(
                 '',
                 context,
@@ -336,20 +336,20 @@ export class Converter {
                 true
             ));
             
-            // Send done signal
+            // 发送完成信号
             yield this.createSSEEvent('done');
             
         } catch (error) {
-            logger.error('Error in enhanced stream extraction', error as Error, {}, context.requestId);
+            logger.error('增强流提取中出错', error as Error, {}, context.requestId);
             yield this.createSSEEvent('error', {
-                message: 'Enhanced stream processing error',
+                message: '增强流处理错误',
                 type: 'api_error'
             });
         }
     }
     
     /**
-     * 📝 Collect all content from VS Code LM response
+     * 📝 从 VS Code LM 响应中收集所有内容
      */
     public static async collectFullResponse(
         response: vscode.LanguageModelChatResponse
@@ -361,15 +361,15 @@ export class Converter {
                 fullContent += chunk;
             }
         } catch (error) {
-            logger.error('Error collecting enhanced response', error as Error);
-            throw new Error('Failed to collect response content');
+            logger.error('收集增强响应时出错', error as Error);
+            throw new Error('收集响应内容失败');
         }
         
         return fullContent;
     }
     
     /**
-     * 🔄 Create Server-Sent Event data
+     * 🔄 创建服务器发送事件数据
      */
     public static createSSEEvent(type: 'data' | 'done' | 'error', data?: any): string {
         switch (type) {
@@ -385,18 +385,18 @@ export class Converter {
     }
     
     /**
-     * 📈 Enhanced token estimation
+     * 📈 增强令牌估算
      */
     private static estimateTokens(text: string): number {
-        // More sophisticated token estimation
-        // Account for different languages and special tokens
+        // 更精细的令牌估算
+        // 考虑不同语言和特殊令牌
         const baseTokens = Math.ceil(text.length / 4);
         const specialTokens = (text.match(/[\n\r\t]/g) || []).length;
         return baseTokens + specialTokens;
     }
     
     /**
-     * 🎯 Create enhanced conversion context
+     * 🎯 创建增强转换上下文
      */
     public static createEnhancedContext(
         requestId: string,
@@ -408,7 +408,7 @@ export class Converter {
         userAgent?: string
     ): EnhancedRequestContext {
         
-        // Analyze message content for capabilities
+        // 分析消息内容以获取能力
         const hasImages = messages.some(msg => 
             Array.isArray(msg.content) && 
             msg.content.some(part => part.type === 'image_url')
@@ -418,7 +418,7 @@ export class Converter {
             msg.tool_calls && msg.tool_calls.length > 0
         );
         
-        // Estimate total tokens
+        // 估算总令牌数
         const estimatedTokens = messages.reduce((total, msg) => {
             if (typeof msg.content === 'string') {
                 return total + this.estimateTokens(msg.content);
@@ -427,13 +427,13 @@ export class Converter {
                     if (part.type === 'text' && part.text) {
                         return partTotal + this.estimateTokens(part.text);
                     }
-                    return partTotal + 100; // Estimate for images
+                    return partTotal + 100; // 图像估算
                 }, 0);
             }
             return total;
         }, 0);
         
-        // Determine required capabilities
+        // 确定所需能力
         const requiredCapabilities: string[] = [];
         if (hasImages) requiredCapabilities.push('supportsVision');
         if (hasFunctions) requiredCapabilities.push('supportsTools');
@@ -455,7 +455,7 @@ export class Converter {
     }
     
     /**
-     * 🧹 Parse and enhance request body
+     * 🧹 解析和增强请求体
      */
     public static parseEnhancedRequestBody(body: string): {
         messages: EnhancedMessage[];
@@ -468,15 +468,15 @@ export class Converter {
         try {
             const parsed = JSON.parse(body);
             
-            // Ensure messages are properly typed
+            // 确保消息具有正确的类型
             if (parsed.messages && Array.isArray(parsed.messages)) {
                 parsed.messages = parsed.messages.map((msg: any) => {
-                    // Convert old-style content to new enhanced format if needed
+                    // 如有需要，将旧式内容转换为新的增强格式
                     if (typeof msg.content === 'string') {
                         return msg as EnhancedMessage;
                     }
                     
-                    // Handle multimodal content
+                    // 处理多模态内容
                     if (Array.isArray(msg.content)) {
                         return {
                             ...msg,
@@ -495,12 +495,12 @@ export class Converter {
             
             return parsed;
         } catch (error) {
-            throw new Error('Invalid JSON in request body');
+            throw new Error('请求体中的 JSON 无效');
         }
     }
     
     /**
-     * 📊 Create health check response with model info
+     * 📊 创建带有模型信息的健康检查响应
      */
     public static createHealthResponse(serverState: any, modelPool?: any) {
         return {
@@ -526,7 +526,7 @@ export class Converter {
     }
     
     /**
-     * 🚀 Create error response in OpenAI format
+     * 🚀 创建 OpenAI 格式的错误响应
      */
     public static createErrorResponse(
         message: string,

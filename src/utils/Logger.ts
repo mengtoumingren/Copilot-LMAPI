@@ -1,6 +1,6 @@
 /**
- * Logger Utility
- * Centralized logging with context and request tracking
+ * 日志工具
+ * 带有上下文和请求追踪的集中式日志记录
  */
 
 import * as vscode from 'vscode';
@@ -44,24 +44,24 @@ export class Logger {
             requestId
         };
 
-        // Add to memory store
+        // 添加到内存存储
         this.logEntries.push(logEntry);
         if (this.logEntries.length > this.maxLogEntries) {
             this.logEntries = this.logEntries.slice(-this.maxLogEntries);
         }
 
-        // Format and output
+        // 格式化和输出
         const formattedMessage = this.formatMessage(level, message, context, requestId);
         
-        // Always show in output channel
+        // 总是在输出频道中显示
         this.outputChannel.appendLine(formattedMessage);
 
-        // Show error notifications in VS Code
+        // 在 VS Code 中显示错误通知
         if (level === 'ERROR') {
             vscode.window.showErrorMessage(`Copilot-LMAPI: ${message}`);
         }
 
-        // Console output for development
+        // 开发时的控制台输出
         if (process.env.NODE_ENV === 'development') {
             console.log(formattedMessage);
         }
@@ -129,7 +129,7 @@ export class Logger {
         this.outputChannel.dispose();
     }
 
-    // Create request-scoped logger
+    // 创建请求范围的日志记录器
     public createRequestLogger(requestId: string) {
         return {
             debug: (message: string, context?: Record<string, any>) => 
@@ -144,5 +144,5 @@ export class Logger {
     }
 }
 
-// Singleton instance
+// 单例实例
 export const logger = new Logger();
