@@ -5,11 +5,13 @@
 ## 🚀 主要功能
 
 - **OpenAI 兼容 API**：完全兼容 OpenAI Chat Completions API
+- **动态模型发现**：实时发现所有可用的 Copilot 模型，无硬编码限制
+- **多模态支持**：支持文本和图像输入，自动处理 Base64、URL 和本地文件
+- **函数/工具调用**：完整支持 OpenAI 函数调用规范
+- **智能模型选择**：根据请求需求自动选择最优模型
 - **流式响应支持**：通过 Server-Sent Events 实现实时流式响应
-- **多模型支持**：支持 GPT-4o、Claude 3.5 Sonnet 等多种 Copilot 模型
 - **本地服务器**：在本地运行，保护隐私和安全
 - **实时监控**：状态栏集成和详细日志记录
-- **自动启动**：VS Code 启动时自动启动服务器
 
 ## 🛠️ 安装方法
 
@@ -67,7 +69,8 @@ POST /v1/chat/completions
 
 完全兼容 OpenAI Chat Completions API，包括：
 - 流式和非流式响应
-- 多模型支持
+- 多模态输入（文本 + 图像）
+- 函数/工具调用
 - Temperature、top_p、max_tokens 参数
 - 停止序列
 - 存在和频率惩罚
@@ -77,10 +80,9 @@ POST /v1/chat/completions
 GET /v1/models
 ```
 
-返回通过 Copilot 可用的模型列表。
+动态返回当前 Copilot 环境中所有可用的模型列表，包括每个模型的能力信息（视觉支持、工具调用、流式响应等）。
 
-明确支持：gpt-4o, claude-3.5-sonnet
-实测支持：gpt-4.1, claude-sonnet-4, gemini-2.0-flash-001, gemini-2.5-pro, o3-mini, o4-mini
+常见模型包括：gpt-4o, claude-3.5-sonnet, gpt-4.1, claude-sonnet-4, gemini-2.0-flash-001, gemini-2.5-pro, o3-mini, o4-mini
 
 #### 健康检查
 ```

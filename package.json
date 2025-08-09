@@ -2,10 +2,10 @@
   "name": "copilot-lmapi-bridge",
   "displayName": "Copilot-LMAPI",
   "description": "Bridge VS Code Copilot Language Model API to OpenAI-compatible HTTP API",
-  "version": "0.2.1",
+  "version": "0.3.2",
   "publisher": "copilot-bridge",
   "engines": {
-    "vscode": "^1.74.0"
+    "vscode": "^1.92.0"
   },
   "categories": [
     "Other"
@@ -126,12 +126,12 @@
     "package": "vsce package"
   },
   "devDependencies": {
-    "@types/vscode": "^1.74.0",
+    "@types/vscode": "^1.92.0",
     "@types/node": "18.x",
     "@typescript-eslint/eslint-plugin": "^6.4.1",
     "@typescript-eslint/parser": "^6.4.1",
-    "eslint": "^8.47.0",
-    "typescript": "^5.1.6",
+  "eslint": "^8.47.0",
+  "typescript": "~5.3.3",
     "vsce": "^2.15.0"
   },
   "repository": {
@@ -142,5 +142,5 @@
     "url": "https://github.com/BlueSkyXN/Copilot-LMAPI/issues"
   },
   "homepage": "https://github.com/BlueSkyXN/Copilot-LMAPI#readme",
-  "license": "MIT"
+  "license": "GPL-3.0"
 }

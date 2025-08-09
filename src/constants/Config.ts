@@ -1,6 +1,6 @@
 /**
- * Configuration Constants
- * Central configuration management for the extension
+ * 配置常量
+ * 扩展的中心配置管理
  */
 
 export const CONFIG_SECTION = 'copilot-lmapi';
@@ -11,7 +11,7 @@ export const DEFAULT_CONFIG = {
     autoStart: false,
     enableLogging: true,
     maxConcurrentRequests: 10,
-    requestTimeout: 120000, // 2 minutes
+    requestTimeout: 120000, // 2 分钟
 } as const;
 
 export const LIMITS = {
@@ -19,8 +19,8 @@ export const LIMITS = {
     MAX_PORT: 65535,
     MIN_CONCURRENT_REQUESTS: 1,
     MAX_CONCURRENT_REQUESTS: 100,
-    MIN_TIMEOUT: 5000,  // 5 seconds
-    MAX_TIMEOUT: 600000, // 10 minutes
+    MIN_TIMEOUT: 5000,  // 5 秒
+    MAX_TIMEOUT: 600000, // 10 分钟
     MAX_MESSAGE_LENGTH: 1000000, // 1MB
     MAX_MESSAGES_PER_REQUEST: 100,
 } as const;
@@ -58,7 +58,7 @@ export const SSE_HEADERS = {
     'Content-Type': CONTENT_TYPES.SSE,
     'Cache-Control': 'no-cache',
     'Connection': 'keep-alive',
-    'X-Accel-Buffering': 'no', // Disable nginx buffering
+    'X-Accel-Buffering': 'no', // 禁用 nginx 缓冲
 } as const;
 
 export const API_ENDPOINTS = {
@@ -105,27 +105,27 @@ export const NOTIFICATIONS = {
     NO_COPILOT_ACCESS: 'GitHub Copilot access required',
 } as const;
 
-// Token estimation (rough approximation)
+// 令牌估算（粗略近似）
 export const TOKEN_ESTIMATION = {
     CHARS_PER_TOKEN: 4,
     MAX_CONTEXT_TOKENS: 128000,
     RESERVED_RESPONSE_TOKENS: 4096,
 } as const;
 
-// Rate limiting
+// 限流
 export const RATE_LIMITS = {
     REQUESTS_PER_MINUTE: 60,
     REQUESTS_PER_HOUR: 1000,
     BURST_SIZE: 10,
 } as const;
 
-// Health check configuration
+// 健康检查配置
 export const HEALTH_CHECK = {
-    INTERVAL: 30000, // 30 seconds
-    TIMEOUT: 5000,   // 5 seconds
+    INTERVAL: 30000, // 30 秒
+    TIMEOUT: 5000,   // 5 秒
 } as const;
 
-// Development/Debug flags
+// 开发/调试标志
 export const DEBUG = {
     LOG_REQUESTS: process.env.NODE_ENV === 'development',
     LOG_RESPONSES: process.env.NODE_ENV === 'development',

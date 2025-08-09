@@ -1,13 +1,12 @@
 /**
- * 🚀 Revolutionary Model Discovery Service
- * Dynamically discovers, tests, and manages ALL available VS Code LM models
- * NO HARDCODED LIMITATIONS - Pure dynamic intelligence!
+ * 🚀 革命性模型发现服务
+ * 动态发现、测试和管理所有可用的 VS Code 语言模型
+ * 无硬编码限制 - 纯动态智能！
  */
 
 import * as vscode from 'vscode';
 import { 
     ModelCapabilities, 
-    DynamicModelCriteria, 
     ModelMetrics, 
     ModelPool, 
     ModelEvent,
@@ -57,31 +56,31 @@ export class ModelDiscoveryService {
     }
     
     /**
-     * 🔍 Discover ALL available models (no limitations!)
+     * 🔍 发现所有可用模型（无限制！）
      */
     public async discoverAllModels(): Promise<ModelCapabilities[]> {
         logger.info('🚀 Starting dynamic model discovery...');
         
         try {
-            // Get ALL models from VS Code LM API
+            // 从 VS Code LM API 获取所有模型
             const allModels = await vscode.lm.selectChatModels();
             logger.info(`📊 Found ${allModels.length} total models`);
             
             const discoveredModels: ModelCapabilities[] = [];
             
-            // Test each model for capabilities
+            // 测试每个模型的能力
             for (const vsCodeModel of allModels) {
                 try {
                     const capabilities = await this.analyzeModelCapabilities(vsCodeModel);
                     discoveredModels.push(capabilities);
                     
-                    // Cache the model
+                    // 缓存模型
                     this.modelCache.set(capabilities.id, capabilities);
                     
-                    // Initialize metrics
+                    // 初始化指标
                     this.initializeModelMetrics(capabilities.id);
                     
-                    // Emit discovery event
+                    // 发出发现事件
                     this.eventEmitter.fire({ type: 'model_discovered', model: capabilities });
                     
                     logger.info(`✅ Model ${capabilities.id} discovered with capabilities:`, {
@@ -95,7 +94,7 @@ export class ModelDiscoveryService {
                 }
             }
             
-            // Update model pool
+            // 更新模型池
             await this.updateModelPool(discoveredModels);
             
             logger.info(`🎉 Discovery complete! Found ${discoveredModels.length} usable models`);
@@ -108,12 +107,12 @@ export class ModelDiscoveryService {
     }
     
     /**
-     * 🔬 Analyze model capabilities (THE MAGIC HAPPENS HERE)
+     * 🔬 分析模型能力（魔法发生的地方）
      */
     private async analyzeModelCapabilities(vsCodeModel: vscode.LanguageModelChat): Promise<ModelCapabilities> {
         const startTime = Date.now();
         
-        // Basic model info
+        // 基本模型信息
         const capabilities: ModelCapabilities = {
             id: vsCodeModel.id,
             family: vsCodeModel.family,
@@ -124,26 +123,26 @@ export class ModelDiscoveryService {
             supportsVision: false,
             supportsTools: false,
             supportsFunctionCalling: false,
-            supportsStreaming: true, // Assume true for VS Code models
+            supportsStreaming: true, // VS Code 模型默认为 true
             supportsMultimodal: false,
             isHealthy: true,
             vsCodeModel: vsCodeModel,
             lastTestedAt: new Date()
         };
         
-        // 🔍 Test for vision capabilities
+        // 🔍 测试视觉能力
         try {
             capabilities.supportsVision = await this.testVisionCapability(vsCodeModel);
             if (capabilities.supportsVision) {
                 capabilities.supportsMultimodal = true;
                 capabilities.supportedImageFormats = ['jpeg', 'jpg', 'png', 'gif', 'webp'];
-                capabilities.maxImagesPerRequest = 10; // Conservative estimate
+                capabilities.maxImagesPerRequest = 10; // 保守估计
             }
         } catch (error) {
             logger.debug(`Vision test failed for ${vsCodeModel.id}:`, { error: String(error) });
         }
         
-        // 🛠️ Test for tool/function calling capabilities
+        // 🛠️ 测试工具/函数调用能力
         try {
             capabilities.supportsTools = await this.testToolCapability(vsCodeModel);
             capabilities.supportsFunctionCalling = capabilities.supportsTools;
@@ -151,22 +150,22 @@ export class ModelDiscoveryService {
             logger.debug(`Tool test failed for ${vsCodeModel.id}:`, { error: String(error) });
         }
         
-        // 📈 Test performance
+        // 📈 测试性能
         const responseTime = Date.now() - startTime;
         capabilities.responseTime = responseTime;
         
-        // 🧠 Intelligent capability inference
+        // 🧠 智能能力推理
         this.inferAdvancedCapabilities(capabilities);
         
         return capabilities;
     }
     
     /**
-     * 👁️ Test if model supports vision/images
+     * 👁️ 测试模型是否支持视觉/图像
      */
     private async testVisionCapability(model: vscode.LanguageModelChat): Promise<boolean> {
         try {
-            // GPT-4o and similar models support vision
+            // GPT-4o 和类似模型支持视觉
             const visionModels = ['gpt-4o', 'gpt-4-turbo', 'claude-3', 'gemini'];
             const modelId = model.id.toLowerCase();
             
@@ -177,11 +176,11 @@ export class ModelDiscoveryService {
     }
     
     /**
-     * 🛠️ Test if model supports tools/function calling
+     * 🛠️ 测试模型是否支持工具/函数调用
      */
     private async testToolCapability(model: vscode.LanguageModelChat): Promise<boolean> {
         try {
-            // Most modern models support tools
+            // 大多数现代模型支持工具
             const toolModels = ['gpt-4', 'gpt-3.5', 'claude-3', 'gemini'];
             const modelId = model.id.toLowerCase();
             
@@ -192,130 +191,52 @@ export class ModelDiscoveryService {
     }
     
     /**
-     * 🧠 Intelligent capability inference
+     * 🧠 智能能力推理
      */
     private inferAdvancedCapabilities(capabilities: ModelCapabilities): void {
         const modelId = capabilities.id.toLowerCase();
         
-        // Infer max output tokens
-        if (!capabilities.maxOutputTokens) {
+        // 推断最大输出令牌数
+    if (!capabilities.maxOutputTokens) {
             capabilities.maxOutputTokens = Math.min(capabilities.maxInputTokens * 0.5, 4096);
         }
         
-        // Infer image capabilities for known vision models
-        if (capabilities.supportsVision) {
+        // 为已知视觉模型推断图像能力
+    if (capabilities.supportsVision) {
             capabilities.maxImageSize = 20 * 1024 * 1024; // 20MB
         }
         
-        // Set context window (same as max input for now)
+        // 设置上下文窗口（目前与最大输入相同）
         capabilities.contextWindow = capabilities.maxInputTokens;
     }
     
-    /**
-     * 🎯 Smart Model Selection Engine
-     */
-    public async selectOptimalModel(criteria: DynamicModelCriteria): Promise<ModelCapabilities | null> {
-        const availableModels = [...this.modelPool.primary, ...this.modelPool.secondary];
-        
-        if (availableModels.length === 0) {
-            logger.warn('⚠️ No models available for selection');
-            return null;
-        }
-        
-        // Filter by requirements
-        let candidateModels = availableModels.filter(model => {
-            // Check health
-            if (!model.isHealthy) return false;
-            
-            // Check required capabilities
-            if (criteria.requiredCapabilities) {
-                for (const capability of criteria.requiredCapabilities) {
-                    if (!model[capability]) return false;
-                }
-            }
-            
-            // Check minimum context tokens
-            if (criteria.minContextTokens && model.maxInputTokens < criteria.minContextTokens) {
-                return false;
-            }
-            
-            // Check vision requirement
-            if (criteria.requiresVision && !model.supportsVision) {
-                return false;
-            }
-            
-            // Check tools requirement
-            if (criteria.requiresTools && !model.supportsTools) {
-                return false;
-            }
-            
-            // Check excluded models
-            if (criteria.excludeModels?.includes(model.id)) {
-                return false;
-            }
-            
-            return true;
-        });
-        
-        // Prefer specific models if requested
-        if (criteria.preferredModels && criteria.preferredModels.length > 0) {
-            const preferredCandidates = candidateModels.filter(model => 
-                criteria.preferredModels!.includes(model.id)
-            );
-            if (preferredCandidates.length > 0) {
-                candidateModels = preferredCandidates;
-            }
-        }
-        
-        if (candidateModels.length === 0) {
-            logger.warn('⚠️ No models match the specified criteria');
-            return null;
-        }
-        
-        // Sort by preference
-        candidateModels.sort((a, b) => {
-            switch (criteria.sortBy) {
-                case 'performance':
-                    return (a.responseTime || 0) - (b.responseTime || 0);
-                case 'tokens':
-                    return b.maxInputTokens - a.maxInputTokens;
-                case 'health':
-                    return (b.successRate || 0) - (a.successRate || 0);
-                case 'capabilities':
-                default:
-                    // Prefer models with more capabilities
-                    const aScore = this.calculateCapabilityScore(a);
-                    const bScore = this.calculateCapabilityScore(b);
-                    return bScore - aScore;
-            }
-        });
-        
-        const selectedModel = candidateModels[0];
-        logger.info(`🎯 Selected model: ${selectedModel.id}`);
-        
-        return selectedModel;
-    }
     
     /**
-     * 📈 Calculate capability score for ranking
+     * 📈 计算能力评分用于排名
      */
     private calculateCapabilityScore(model: ModelCapabilities): number {
         let score = 0;
         
-        score += model.maxInputTokens / 1000; // Token capacity
-        if (model.supportsVision) score += 50;
-        if (model.supportsTools) score += 30;
-        if (model.supportsMultimodal) score += 20;
-        score += (model.successRate || 0.5) * 100; // Health score
+        score += model.maxInputTokens / 1000; // 令牌容量
+        if (model.supportsVision) {
+            score += 50;
+        }
+        if (model.supportsTools) {
+            score += 30;
+        }
+        if (model.supportsMultimodal) {
+            score += 20;
+        }
+        score += (model.successRate || 0.5) * 100; // 健康评分
         
         return score;
     }
     
     /**
-     * 🔄 Update model pool organization
+     * 🔄 更新模型池组织
      */
     private async updateModelPool(models: ModelCapabilities[]): Promise<void> {
-        // Reset pools
+        // 重置池
         this.modelPool = {
             primary: [],
             secondary: [],
@@ -324,7 +245,7 @@ export class ModelDiscoveryService {
             lastUpdated: new Date()
         };
         
-        // Organize models by health and capability
+        // 按健康状态和能力组织模型
         for (const model of models) {
             if (!model.isHealthy) {
                 this.modelPool.unhealthy.push(model);
@@ -337,12 +258,12 @@ export class ModelDiscoveryService {
             }
         }
         
-        // Sort each pool by capability score
+        // 按能力评分对每个池进行排序
         this.modelPool.primary.sort((a, b) => this.calculateCapabilityScore(b) - this.calculateCapabilityScore(a));
         this.modelPool.secondary.sort((a, b) => this.calculateCapabilityScore(b) - this.calculateCapabilityScore(a));
         this.modelPool.fallback.sort((a, b) => this.calculateCapabilityScore(b) - this.calculateCapabilityScore(a));
         
-        // Emit pool update event
+        // 发出池更新事件
         this.eventEmitter.fire({ type: 'pool_refreshed', pool: this.modelPool });
         
         logger.info(`🎪 Model pool updated:`, {
@@ -354,7 +275,7 @@ export class ModelDiscoveryService {
     }
     
     /**
-     * 📊 Initialize metrics for a model
+     * 📊 为模型初始化指标
      */
     private initializeModelMetrics(modelId: string): void {
         if (!this.modelMetrics.has(modelId)) {
@@ -370,7 +291,7 @@ export class ModelDiscoveryService {
     }
     
     /**
-     * 🔄 Start background services
+     * 🔄 启动后台服务
      */
     private startBackgroundServices(): void {
         if (this.config.enableCaching) {
@@ -391,7 +312,7 @@ export class ModelDiscoveryService {
     }
     
     /**
-     * 👩‍⚕️ Perform health checks on all models
+     * 👩‍⚕️ 对所有模型执行健康检查
      */
     private async performHealthChecks(): Promise<void> {
         logger.debug('👩‍⚕️ Performing model health checks...');
@@ -400,7 +321,7 @@ export class ModelDiscoveryService {
         
         for (const model of allModels) {
             try {
-                // Simple health check - try to get model info
+                // 简单健康检查 - 尝试获取模型信息
                 const isHealthy = model.vsCodeModel.maxInputTokens > 0;
                 
                 if (model.isHealthy !== isHealthy) {
@@ -425,28 +346,28 @@ export class ModelDiscoveryService {
     }
     
     /**
-     * 📋 Get current model pool
+     * 📋 获取当前模型池
      */
     public getModelPool(): ModelPool {
         return { ...this.modelPool };
     }
     
     /**
-     * 📋 Get model by ID
+     * 📋 按 ID 获取模型
      */
     public getModel(modelId: string): ModelCapabilities | undefined {
         return this.modelCache.get(modelId);
     }
     
     /**
-     * 📋 Get all available models
+     * 📋 获取所有可用模型
      */
     public getAllModels(): ModelCapabilities[] {
         return Array.from(this.modelCache.values());
     }
     
     /**
-     * 🧹 Cleanup resources
+     * 🧹 清理资源
      */
     public dispose(): void {
         if (this.refreshTimer) {
