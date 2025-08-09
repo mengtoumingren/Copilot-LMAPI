@@ -15,7 +15,6 @@ import { FunctionCallService } from '../services/FunctionCallService';
 
 import {
     ModelCapabilities,
-    DynamicModelCriteria,
     EnhancedMessage,
     EnhancedRequestContext,
     FunctionDefinition,
@@ -132,7 +131,7 @@ export class RequestHandler {
             
             // 提取增强消息和请求参数
             const messages: EnhancedMessage[] = requestData.messages;
-            const requestedModel = requestData.model || 'auto-select';
+            const requestedModel = requestData.model;
             const isStream = requestData.stream || false;
             const functions: FunctionDefinition[] = requestData.functions || [];
             const tools = requestData.tools || [];
@@ -157,23 +156,19 @@ export class RequestHandler {
                 req.headers['user-agent']
             );
             
-            // 🎯 智能模型选择（无硬编码限制！）
-            const selectionCriteria: DynamicModelCriteria = {
-                preferredModels: requestedModel !== 'auto-select' ? [requestedModel] : undefined,
-                requiredCapabilities: context.requiredCapabilities as any,
-                requiresVision: context.hasImages,
-                requiresTools: context.hasFunctions || functions.length > 0,
-                minContextTokens: context.estimatedTokens,
-                sortBy: 'capabilities'
-            };
-            
-            const selectedModel = await this.modelDiscovery.selectOptimalModel(selectionCriteria);
+            // 🎯 仅允许直接使用请求的模型（完全移除自动选择）
+            let selectedModel: ModelCapabilities | null = this.modelDiscovery.getModel(requestedModel) || null;
+            if (!selectedModel) {
+                // 如果找不到模型，尝试重新发现模型
+                await this.modelDiscovery.discoverAllModels();
+                selectedModel = this.modelDiscovery.getModel(requestedModel) || null;
+            }
             
             if (!selectedModel) {
                 this.sendErrorResponse(
                     res,
                     HTTP_STATUS.SERVICE_UNAVAILABLE,
-                    `No suitable model available for request requirements`,
+                    `Requested model '${requestedModel}' not found or unavailable`,
                     ERROR_CODES.API_ERROR,
                     requestId
                 );
@@ -183,8 +178,9 @@ export class RequestHandler {
             // 用所选模型更新上下文
             context.selectedModel = selectedModel;
             
-            requestLogger.info('✅ Model selected:', {
-                modelId: selectedModel.id,
+            // 始终 direct：日志清晰表明使用请求的模型
+            requestLogger.info('✅ Model direct:', {
+                model: requestedModel,
                 vendor: selectedModel.vendor,
                 family: selectedModel.family,
                 maxTokens: selectedModel.maxInputTokens,

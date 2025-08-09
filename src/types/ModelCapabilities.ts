@@ -39,16 +39,7 @@ export interface ModelCapabilities {
     vsCodeModel: vscode.LanguageModelChat;
 }
 
-// 🔧 模型选择标准（动态）
-export interface DynamicModelCriteria {
-    preferredModels?: string[];
-    requiredCapabilities?: (keyof ModelCapabilities)[];
-    minContextTokens?: number;
-    requiresVision?: boolean;
-    requiresTools?: boolean;
-    excludeModels?: string[];
-    sortBy?: 'performance' | 'tokens' | 'capabilities' | 'health';
-}
+// （已移除）模型自动选择相关类型
 
 // 🎨 用于多模态的增强消息类型
 export interface EnhancedMessage {
@@ -118,7 +109,7 @@ export interface ModelPool {
 // 📋 带有增强功能的请求上下文
 export interface EnhancedRequestContext {
     requestId: string;
-    model?: string;
+    model: string;
     isStream: boolean;
     startTime: Date;
     clientIP?: string;

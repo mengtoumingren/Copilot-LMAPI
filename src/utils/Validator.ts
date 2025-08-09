@@ -300,26 +300,27 @@ export class Validator {
      * 🎯 动态模型验证（无硬编码限制！）
      */
     private static validateDynamicModel(model: any, availableModels?: ModelCapabilities[]): string {
-        if (!model) {
-            // 如果未指定模型，让系统自动选择
-            return 'auto-select';
+        // 强制要求明确指定模型，禁止自动选择
+        if (!model || (typeof model === 'string' && model.trim() === '')) {
+            throw new ValidationError('Model is required and cannot be empty', ERROR_CODES.INVALID_REQUEST, 'model');
         }
-        
+
         if (typeof model !== 'string') {
             throw new ValidationError('Model must be a string', ERROR_CODES.INVALID_REQUEST, 'model');
         }
-        
-        // 🚀 革命性：无硬编码模型列表！
-        // 如果提供了可用模型，检查模型是否存在
+
+        if (model === 'auto-select') {
+            throw new ValidationError('Automatic model selection is disabled. Please specify a concrete model id.', ERROR_CODES.INVALID_REQUEST, 'model');
+        }
+
+        // 如果提供了可用模型，检查模型是否存在（不强制，但记录）
         if (availableModels && availableModels.length > 0) {
             const modelExists = availableModels.some(m => m.id === model);
-            
-            if (!modelExists && model !== 'auto-select') {
-                logger.warn(`⚠️ Requested model "${model}" not found in available models. Will attempt dynamic discovery.`);
-                // 不抛出错误 - 让模型发现服务处理它
+            if (!modelExists) {
+                logger.warn(`⚠️ Requested model "${model}" not found in available models.`);
             }
         }
-        
+
         return model;
     }
     

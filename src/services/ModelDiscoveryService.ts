@@ -7,7 +7,6 @@
 import * as vscode from 'vscode';
 import { 
     ModelCapabilities, 
-    DynamicModelCriteria, 
     ModelMetrics, 
     ModelPool, 
     ModelEvent,
@@ -211,94 +210,6 @@ export class ModelDiscoveryService {
         capabilities.contextWindow = capabilities.maxInputTokens;
     }
     
-    /**
-     * 🎯 智能模型选择引擎
-     */
-    public async selectOptimalModel(criteria: DynamicModelCriteria): Promise<ModelCapabilities | null> {
-        const availableModels = [...this.modelPool.primary, ...this.modelPool.secondary];
-        
-        if (availableModels.length === 0) {
-            logger.warn('⚠️ No models available for selection');
-            return null;
-        }
-        
-        // 按需求筛选
-        let candidateModels = availableModels.filter(model => {
-            // 检查健康状态
-            if (!model.isHealthy) {
-                return false;
-            }
-            
-            // 检查必需能力
-            if (criteria.requiredCapabilities) {
-                for (const capability of criteria.requiredCapabilities) {
-                    if (!model[capability]) {
-                        return false;
-                    }
-                }
-            }
-            
-            // 检查最小上下文令牌数
-            if (criteria.minContextTokens && model.maxInputTokens < criteria.minContextTokens) {
-                return false;
-            }
-            
-            // 检查视觉需求
-            if (criteria.requiresVision && !model.supportsVision) {
-                return false;
-            }
-            
-            // 检查工具需求
-            if (criteria.requiresTools && !model.supportsTools) {
-                return false;
-            }
-            
-            // 检查排除模型
-            if (criteria.excludeModels?.includes(model.id)) {
-                return false;
-            }
-            
-            return true;
-        });
-        
-        // 如有请求则优先使用特定模型
-        if (criteria.preferredModels && criteria.preferredModels.length > 0) {
-            const preferredCandidates = candidateModels.filter(model => 
-                criteria.preferredModels!.includes(model.id)
-            );
-            if (preferredCandidates.length > 0) {
-                candidateModels = preferredCandidates;
-            }
-        }
-        
-        if (candidateModels.length === 0) {
-            logger.warn('⚠️ No models match the specified criteria');
-            return null;
-        }
-        
-        // 按偏好排序
-        candidateModels.sort((a, b) => {
-            switch (criteria.sortBy) {
-                case 'performance':
-                    return (a.responseTime || 0) - (b.responseTime || 0);
-                case 'tokens':
-                    return b.maxInputTokens - a.maxInputTokens;
-                case 'health':
-                    return (b.successRate || 0) - (a.successRate || 0);
-                case 'capabilities':
-                default:
-                    // 优先选择能力更多的模型
-                    const aScore = this.calculateCapabilityScore(a);
-                    const bScore = this.calculateCapabilityScore(b);
-                    return bScore - aScore;
-            }
-        });
-        
-        const selectedModel = candidateModels[0];
-        logger.info(`🎯 Selected model: ${selectedModel.id}`);
-        
-        return selectedModel;
-    }
     
     /**
      * 📈 计算能力评分用于排名

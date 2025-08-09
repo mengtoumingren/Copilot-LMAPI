@@ -222,7 +222,7 @@ export class Converter {
             id: `chatcmpl-${context.requestId}`,
             object: 'chat.completion',
             created: now,
-            model: selectedModel.id, // 使用实际模型 ID
+            model: context.model, // 使用请求的模型名称
             choices: [{
                 index: 0,
                 message: {
@@ -256,7 +256,7 @@ export class Converter {
             id: `chatcmpl-${context.requestId}`,
             object: 'chat.completion.chunk',
             created: now,
-            model: selectedModel.id, // 使用实际模型 ID
+            model: context.model, // 使用请求的模型名称
             choices: [{
                 index: 0,
                 delta: {},
