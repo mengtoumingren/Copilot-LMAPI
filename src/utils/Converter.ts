@@ -7,6 +7,8 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as http from 'http';
+import * as https from 'https';
 import { 
     EnhancedMessage, 
     ModelCapabilities, 
@@ -166,10 +168,38 @@ export class Converter {
                 };
                 
             } else if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-                // URL 图像 - 出于安全考虑，我们只记录它
-                return {
-                    description: `Remote image from ${new URL(imageUrl).hostname}`
-                };
+                // URL 图像 - 如果配置允许，则尝试下载并返回 base64 数据；否则仅记录描述
+                    const vsCodeConfig = vscode.workspace.getConfiguration('copilot-lmapi');
+
+                    const allowDownloadEnv = process.env.COPILOT_LMAPI_ALLOW_REMOTE_IMAGE_DOWNLOAD === 'true';
+                    const allowDownload = vsCodeConfig.get<boolean>('allowRemoteImageDownload', allowDownloadEnv);
+
+                    const maxBytesEnv = parseInt(process.env.COPILOT_LMAPI_MAX_IMAGE_BYTES || String(20 * 1024 * 1024), 10);
+                    const maxBytes = vsCodeConfig.get<number>('maxImageBytes', maxBytesEnv);
+
+                    const timeoutMsEnv = parseInt(process.env.COPILOT_LMAPI_IMAGE_FETCH_TIMEOUT_MS || '5000', 10);
+                    const timeoutMs = vsCodeConfig.get<number>('imageFetchTimeoutMs', timeoutMsEnv);
+
+                const description = `Remote image from ${new URL(imageUrl).hostname}`;
+
+                if (!allowDownload) {
+                    return { description };
+                }
+
+                try {
+                    const downloaded = await this.downloadImageAsBase64(imageUrl, timeoutMs, maxBytes);
+                    if (downloaded) {
+                        return {
+                            description,
+                            data: downloaded.data,
+                            mimeType: downloaded.mimeType
+                        };
+                    }
+                    return { description };
+                } catch (err) {
+                    logger.warn(`下载远端图片失败，回退为描述: ${imageUrl}`, err as Error);
+                    return { description };
+                }
                 
             } else if (imageUrl.startsWith('file://') || await this.fileExists(imageUrl)) {
                 // 本地文件
@@ -578,6 +608,61 @@ export class Converter {
         } catch {
             return false;
         }
+    }
+
+    /**
+     * 下载远端图片为 base64（带超时和大小限制）
+     */
+    private static async downloadImageAsBase64(urlStr: string, timeoutMs: number, maxBytes: number): Promise<{ data: string; mimeType: string } | null> {
+        return new Promise((resolve, reject) => {
+            try {
+                const url = new URL(urlStr);
+                const get = url.protocol === 'https:' ? https.get : http.get;
+                const req = get(url, { timeout: timeoutMs }, (res) => {
+                    const status = res.statusCode || 0;
+                    if (status >= 400) {
+                        res.resume();
+                        reject(new Error(`HTTP ${status}`));
+                        return;
+                    }
+
+                    const contentType = (res.headers['content-type'] || '').split(';')[0];
+                    if (!contentType.startsWith('image/')) {
+                        res.resume();
+                        reject(new Error(`Unsupported content-type: ${contentType}`));
+                        return;
+                    }
+
+                    const chunks: Buffer[] = [];
+                    let received = 0;
+                    res.on('data', (chunk: Buffer) => {
+                        received += chunk.length;
+                        if (received > maxBytes) {
+                            req.destroy();
+                            reject(new Error('Image exceeds max size'));
+                            return;
+                        }
+                        chunks.push(chunk);
+                    });
+
+                    res.on('end', () => {
+                        const buf = Buffer.concat(chunks);
+                        resolve({ data: buf.toString('base64'), mimeType: contentType });
+                    });
+
+                    res.on('error', (err) => reject(err));
+                });
+
+                req.on('timeout', () => {
+                    req.destroy();
+                    reject(new Error('Image fetch timeout'));
+                });
+
+                req.on('error', (err) => reject(err));
+            } catch (err) {
+                reject(err);
+            }
+        });
     }
 
     /**
