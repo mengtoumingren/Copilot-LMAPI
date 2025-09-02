@@ -91,7 +91,7 @@ export class Converter {
             return null;
         }
         
-        const contentParts: (vscode.LanguageModelTextPart | vscode.LanguageModelToolResultPart)[] = [];
+    const contentParts: any[] = [];
         let textContent = this.formatRolePrefix(message.role);
         
         for (const part of message.content) {
@@ -105,9 +105,26 @@ export class Converter {
                     try {
                         const imageContent = await this.processImageContent(part.image_url.url);
                         if (imageContent) {
-                            textContent += `\n[Image: ${imageContent.description}]\n`;
-                            // 注意：VS Code LM API 可能以不同方式处理图像
-                            // 目前这是一个文本表示
+                            // 如果我们有二进制数据（来自 data URI 或本地文件），则创建 LanguageModelDataPart 并加入内容
+                            if (imageContent.data && imageContent.mimeType) {
+                                const buffer = Buffer.from(imageContent.data, 'base64');
+                                try {
+                                    const DataPartCtor = (vscode as any).LanguageModelDataPart;
+                                    if (DataPartCtor) {
+                                        contentParts.push(new DataPartCtor(buffer, imageContent.mimeType));
+                                    } else {
+                                        // 如果运行时没有该构造器，退回到文本占位
+                                        textContent += `\n[Image: ${imageContent.description}]\n`;
+                                    }
+                                } catch (e) {
+                                    // 如果创建 DataPart 失败，退回到文本占位
+                                    logger.warn('无法创建 LanguageModelDataPart，退回文本占位：', e as Error);
+                                    textContent += `\n[Image: ${imageContent.description}]\n`;
+                                }
+                            } else {
+                                // 无二进制数据，仅添加描述文本（例如远程 URL）
+                                textContent += `\n[Image: ${imageContent.description}]\n`;
+                            }
                         }
                     } catch (error) {
                         logger.warn(`处理图像失败：`, error as Error);
@@ -120,8 +137,10 @@ export class Converter {
             }
         }
         
-        // 添加文本部分
-        contentParts.push(new vscode.LanguageModelTextPart(textContent));
+        // 如果仍有文本内容（或者没有直接添加 DataPart），则添加文本部分
+        if (textContent && textContent.trim().length > 0) {
+            contentParts.push(new vscode.LanguageModelTextPart(textContent));
+        }
         
         // 使用正确的角色映射创建消息
         return new vscode.LanguageModelChatMessage(
@@ -133,7 +152,7 @@ export class Converter {
     /**
      * 🖼️ 处理图像内容（Base64、URL 或文件路径）
      */
-    private static async processImageContent(imageUrl: string): Promise<{ description: string; data?: string } | null> {
+    private static async processImageContent(imageUrl: string): Promise<{ description: string; data?: string; mimeType?: string } | null> {
         try {
             // 处理不同的图像源
             if (imageUrl.startsWith('data:image/')) {
@@ -142,7 +161,8 @@ export class Converter {
                 const mimeType = header.match(/data:([^;]+)/)?.[1] || 'image/jpeg';
                 return {
                     description: `Base64 ${mimeType} image`,
-                    data: data
+                    data: data,
+                    mimeType
                 };
                 
             } else if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
@@ -160,9 +180,20 @@ export class Converter {
                 if (supportedFormats.includes(ext)) {
                     try {
                         const stats = await fs.promises.stat(filePath);
-                        return {
-                            description: `Local ${ext.slice(1)} image (${(stats.size / 1024).toFixed(1)}KB)`
-                        };
+                        // 尝试读取为 base64，以便上层可以直接创建 DataPart
+                        try {
+                            const buf = await fs.promises.readFile(filePath);
+                            const mimeType = ext === '.png' ? 'image/png' : (ext === '.jpg' || ext === '.jpeg' ? 'image/jpeg' : `image/${ext.slice(1)}`);
+                            return {
+                                description: `Local ${ext.slice(1)} image (${(stats.size / 1024).toFixed(1)}KB)`,
+                                data: buf.toString('base64'),
+                                mimeType
+                            };
+                        } catch (readErr) {
+                            return {
+                                description: `Local ${ext.slice(1)} image (${(stats.size / 1024).toFixed(1)}KB)`
+                            };
+                        }
                     } catch (error) {
                         return {
                             description: `Local ${ext.slice(1)} image (size unknown)`
